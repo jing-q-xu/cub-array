@@ -12,4 +12,4 @@ add_executable(cub_array
         include/cub/array/ObjectArray.h
         include/cub/base/Placement.h
         test/ut/PlacementTest.cpp
-        test/ut/catch.cpp include/cub/base/DeduceSizeType.h test/ut/DeduceSizeTypeTest.cpp include/cub/array/ReadOnlyArrayLike.h test/ut/TestReadOnlyArrayLike.cpp include/cub/base/SizeOfArray.h)
+        test/ut/catch.cpp include/cub/base/DeduceSizeType.h test/ut/DeduceSizeTypeTest.cpp include/cub/array/ReadOnlyArrayLike.h test/ut/TestReadOnlyArrayLike.cpp include/cub/base/SizeOfArray.h include/cub/array/ArrayLike.h include/cub/array/detail/ArrayHolder.h include/cub/array/detail/ObjectTrait.h test/ut/ObjectArrayTest.cpp)

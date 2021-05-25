@@ -5,7 +5,7 @@
 #ifndef CUB_ARRAY_READONLYARRAYLIKE_H
 #define CUB_ARRAY_READONLYARRAYLIKE_H
 
-#include <cub/base/Placement.h>
+#include <cub/array/detail/ObjectTrait.h>
 #include <cub/base/DeduceSizeType.h>
 #include <cub/base/SizeOfArray.h>
 #include <cstdint>
@@ -13,41 +13,11 @@
 #include <bitset>
 #include <optional>
 
-namespace detail {
-    template<typename OBJ>
-    struct ObjectTrait {
-        using ElemType = OBJ;
-        using ObjectType = OBJ;
-
-        static auto ToObject(ElemType const& elem) -> ObjectType const& {
-            return elem;
-        }
-
-        static auto ToObject(ElemType & elem) -> ObjectType& {
-            return elem;
-        }
-    };
-
-    template<typename T>
-    struct ObjectTrait<Placement<T>> {
-        using ElemType = Placement<T>;
-        using ObjectType = T;
-
-        static auto ToObject(ElemType const& elem) -> ObjectType const& {
-            return *elem;
-        }
-
-        static auto ToObject(ElemType & elem) -> ObjectType& {
-            return *elem;
-        }
-    };
-}
-
 template<typename DATA_HOLDER>
-struct ReadOnlyArrayLike : private DATA_HOLDER {
+struct ReadOnlyArrayLike : protected DATA_HOLDER {
     using ElemType = std::decay_t<decltype(*DATA_HOLDER::objs)>;
 
-private:
+protected:
     using Trait = detail::ObjectTrait<ElemType>;
     using Data = DATA_HOLDER;
 
@@ -66,6 +36,14 @@ public:
 
     auto GetNum() const -> SizeType {
         return Data::num;
+    }
+
+    auto IsEmpty() const -> bool {
+        return Data::num == 0;
+    }
+
+    auto IsFull() const -> bool {
+        return Data::num == MAX_SIZE;
     }
 
     auto GetFreeNum() const -> SizeType {

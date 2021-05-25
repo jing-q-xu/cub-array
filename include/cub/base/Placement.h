@@ -6,6 +6,7 @@
 #define CUB_ARRAY_PLACEMENT_H
 
 #include <utility>
+#include <new>
 
 template<typename T>
 struct Placement
@@ -15,6 +16,12 @@ struct Placement
     template<typename ... ARGS>
     auto Emplace(ARGS&& ... args) -> T* {
         return new (obj) T{ std::forward<ARGS>(args)... };
+    }
+
+    template<typename ... ARGS>
+    auto Replace(ARGS&& ... args) -> T* {
+        Destroy();
+        return Emplace(std::forward<ARGS>(args)...);
     }
 
     auto Destroy() -> void {

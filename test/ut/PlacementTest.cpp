@@ -28,7 +28,7 @@ namespace {
 SCENARIO("Placement") {
     Placement<Foo> obj;
 
-    static_assert(alignof(obj) == alignof(Foo));
+    static_assert(alignof(Placement<Foo>) == alignof(Foo));
 
     REQUIRE(!cons);
 
