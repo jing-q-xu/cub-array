@@ -121,6 +121,20 @@ SCENARIO("const ReadOnlyArrayLike ForEach") {
         REQUIRE(n == 2);
     }
 
+    {
+        IntArray::BitMap bitMap;
+        bitMap.set(1);
+
+        int n = 0;
+        int value = 0;
+        array.ForEach([&](int const& elem) {
+            ++n;
+            value = elem;
+        }, bitMap);
+
+        REQUIRE(n == 1);
+    }
+
 }
 
 namespace {
@@ -222,4 +236,53 @@ SCENARIO("const Placement ReadOnlyArrayLike ForEach") {
         REQUIRE(n == 2);
     }
 
+//    std::bitset<256> bs;
+//    bs.set(250);
+//    std::bitset<256> bs1{1};
+//
+//    REQUIRE(bs == bs1);
 }
+
+SCENARIO("const ReadOnlyArrayLike Find") {
+    const IntArray array = {1, 2, 3};
+
+    {
+        auto result = array.FindIndex([](auto&& item) {
+            return item == 2;
+        });
+        REQUIRE(result);
+        REQUIRE(*result == 1);
+    }
+
+    {
+        auto result = array.FindIndex([](auto&& item) {
+            return item == 2;
+        }, 10);
+        REQUIRE(!result);
+    }
+
+    {
+        IntArray::BitMap enabled{};
+        enabled.set(0);
+        enabled.set(2);
+
+        auto result = array.FindIndex([](auto&& item) {
+            return item == 2;
+        }, enabled);
+        REQUIRE(!result);
+    }
+
+    {
+        IntArray::BitMap enabled{};
+        enabled.set(1);
+        enabled.set(2);
+
+        auto result = array.FindIndex([](auto&& item) {
+            return item == 2;
+        });
+        REQUIRE(result);
+        REQUIRE(*result == 1);
+    }
+
+}
+
