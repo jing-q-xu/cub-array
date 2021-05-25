@@ -8,4 +8,8 @@ include_directories(
     "${CMAKE_CURRENT_SOURCE_DIR}/third-party"
 )
 
-add_library(cub_array library.cpp library.h include/cub/array/ObjectArray.h include/cub/base/Placement.h)
+add_executable(cub_array
+        include/cub/array/ObjectArray.h
+        include/cub/base/Placement.h
+        test/ut/PlacementTest.cpp
+        test/ut/catch.cpp)
