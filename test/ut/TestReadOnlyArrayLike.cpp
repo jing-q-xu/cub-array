@@ -2,7 +2,7 @@
 // Created by Darwin Yuan on 2021/5/26.
 //
 
-#include <cub/array/ReadOnlyArrayLike.h>
+#include <cub/array/detail/ReadOnlyArrayLike.h>
 #include <catch.hpp>
 
 namespace {

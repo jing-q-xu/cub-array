@@ -7,7 +7,7 @@
 
 #include <cub/base/Placement.h>
 #include <cub/array/detail/ArrayHolder.h>
-#include <cub/array/ArrayLike.h>
+#include <cub/array/detail/ArrayLike.h>
 
 namespace detail {
     template<typename T, std::size_t MAX_NUM>

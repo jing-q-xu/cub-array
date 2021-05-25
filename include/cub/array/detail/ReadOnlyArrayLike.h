@@ -50,12 +50,12 @@ public:
         return MAX_SIZE - Data::num;
     }
 
-    auto operator[](SizeType n) const -> ObjectType const& {
-        return Trait::ToObject(Data::objs[n]);
+    auto operator[](SizeType n) const -> decltype(auto) {
+        return (Trait::ToObject(Data::objs[n]));
     }
 
-    auto operator[](SizeType n) -> ObjectType& {
-        return Trait::ToObject(Data::objs[n]);
+    auto operator[](SizeType n) -> decltype(auto) {
+        return (Trait::ToObject(Data::objs[n]));
     }
 
 private:

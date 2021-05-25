@@ -5,7 +5,7 @@
 #ifndef CUB_ARRAY_ARRAYLIKE_H
 #define CUB_ARRAY_ARRAYLIKE_H
 
-#include <cub/array/ReadOnlyArrayLike.h>
+#include <cub/array/detail/ReadOnlyArrayLike.h>
 
 template<typename DATA_HOLDER>
 struct ArrayLike : ReadOnlyArrayLike<DATA_HOLDER> {
