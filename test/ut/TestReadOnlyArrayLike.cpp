@@ -204,6 +204,12 @@ SCENARIO("Placement ReadOnlyArrayLike ForEach") {
 SCENARIO("const Placement ReadOnlyArrayLike ForEach") {
     const PlacementArray array = {1,2,3};
 
+    REQUIRE(array[0] == 1);
+    REQUIRE(array[1] == 2);
+    REQUIRE(array[2] == 3);
+    REQUIRE(array.GetNum() == 3);
+    REQUIRE(array.GetFreeNum() == 7);
+
     array.ForEach([](int elem, int i) {
         REQUIRE(elem == (i+1));
     });
@@ -284,5 +290,33 @@ SCENARIO("const ReadOnlyArrayLike Find") {
         REQUIRE(*result == 1);
     }
 
+
+
 }
 
+SCENARIO("const Placement ReadOnlyArrayLike MinElem") {
+    const PlacementArray array = {2, 4, 3, 1, 8};
+
+    {
+        auto result = array.MinElemIndex([](auto&& l, auto&& r) {
+            return l < r;
+        });
+
+        REQUIRE(result);
+        REQUIRE(*result == 3);
+    }
+
+    {
+        IntArray::BitMap enabled{};
+        enabled.set(1);
+        enabled.set(2);
+        enabled.set(4);
+
+        auto result = array.MinElemIndex([](auto&& l, auto&& r) {
+            return l < r;
+        }, enabled);
+
+        REQUIRE(result);
+        REQUIRE(*result == 2);
+    }
+}

@@ -13,40 +13,42 @@
 #include <bitset>
 #include <optional>
 
-template<typename OBJ>
-struct ObjectTrait {
-    using ElemType = OBJ;
-    using ObjectType = OBJ;
+namespace detail {
+    template<typename OBJ>
+    struct ObjectTrait {
+        using ElemType = OBJ;
+        using ObjectType = OBJ;
 
-    static auto ToObject(ElemType const& elem) -> ObjectType const& {
-        return elem;
-    }
+        static auto ToObject(ElemType const& elem) -> ObjectType const& {
+            return elem;
+        }
 
-    static auto ToObject(ElemType & elem) -> ObjectType& {
-        return elem;
-    }
-};
+        static auto ToObject(ElemType & elem) -> ObjectType& {
+            return elem;
+        }
+    };
 
-template<typename T>
-struct ObjectTrait<Placement<T>> {
-    using ElemType = Placement<T>;
-    using ObjectType = T;
+    template<typename T>
+    struct ObjectTrait<Placement<T>> {
+        using ElemType = Placement<T>;
+        using ObjectType = T;
 
-    static auto ToObject(ElemType const& elem) -> ObjectType const& {
-        return *elem;
-    }
+        static auto ToObject(ElemType const& elem) -> ObjectType const& {
+            return *elem;
+        }
 
-    static auto ToObject(ElemType & elem) -> ObjectType& {
-        return *elem;
-    }
-};
+        static auto ToObject(ElemType & elem) -> ObjectType& {
+            return *elem;
+        }
+    };
+}
 
 template<typename DATA_HOLDER>
 struct ReadOnlyArrayLike : private DATA_HOLDER {
     using ElemType = std::decay_t<decltype(*DATA_HOLDER::objs)>;
 
 private:
-    using Trait = ObjectTrait<ElemType>;
+    using Trait = detail::ObjectTrait<ElemType>;
     using Data = DATA_HOLDER;
 
 public:
@@ -59,31 +61,50 @@ public:
 
     using BitMap = std::bitset<MAX_SIZE>;
 
+public:
+    using DATA_HOLDER::DATA_HOLDER;
+
+    auto GetNum() const -> SizeType {
+        return Data::num;
+    }
+
+    auto GetFreeNum() const -> SizeType {
+        return MAX_SIZE - Data::num;
+    }
+
+    auto operator[](SizeType n) const -> ObjectType const& {
+        return Trait::ToObject(Data::objs[n]);
+    }
+
+    auto operator[](SizeType n) -> ObjectType& {
+        return Trait::ToObject(Data::objs[n]);
+    }
+
 private:
     template< typename OP>
     auto Visit(OP&& op, SizeType i) -> void {
         if constexpr (std::is_invocable_v<OP, ObjectType&, SizeType>) {
-            op(Trait::ToObject(Data::objs[i]), i);
+            op((*this)[i], i);
         } else {
-            op(Trait::ToObject(Data::objs[i]));
+            op((*this)[i]);
         }
     }
 
     template< typename OP>
     auto Visit(OP&& op, SizeType i) const -> void {
         if constexpr (std::is_invocable_v<OP, ObjectType const&, SizeType>) {
-            op(Trait::ToObject(Data::objs[i]), i);
+            op((*this)[i], i);
         } else {
-            op(Trait::ToObject(Data::objs[i]));
+            op((*this)[i]);
         }
     }
 
     template< typename PRED>
     auto Pred(PRED&& pred, SizeType i) const -> bool {
         if constexpr (std::is_invocable_r_v<bool, PRED, ObjectType const&, SizeType>) {
-            return pred(Trait::ToObject(Data::objs[i]), i);
+            return pred((*this)[i], i);
         } else {
-            return pred(Trait::ToObject(Data::objs[i]));
+            return pred((*this)[i]);
         }
     }
 
@@ -102,12 +123,10 @@ private:
     }
 
     auto GetObj(std::optional<SizeType> index) const -> ObjectType const*{
-        return index ? &Trait::ToObject(Data::objs[*index]) : nullptr;
+        return index ? &(*this)[*index] : nullptr;
     }
 
 public:
-    using DATA_HOLDER::DATA_HOLDER;
-
     template< typename OP>
     auto ForEach(OP&& op, std::size_t from = 0) {
         for(auto i=from; i<Data::num; i++) {
@@ -191,6 +210,83 @@ public:
     auto Find(PRED&& pred, BitMap enabled, SizeType from = 0) -> ObjectType*
     {
         return const_cast<ObjectType*>(GetObj(FindIndex(pred, enabled, from)));
+    }
+
+    template<typename LESS>
+    auto MinElem(LESS&& less, SizeType from = 0) const -> ObjectType const*
+    {
+        if(Data::num <= from) return nullptr;
+        auto found = std::min_element(Data::objs + from, Data::objs + Data::num, [&](auto&& l, auto&& r){
+            return less(Trait::ToObject(l), Trait::ToObject(r));
+        });
+        return (found == Data::objs + Data::num) ? nullptr : &Trait::ToObject(*found);
+    }
+
+    template<typename LESS>
+    auto MinElem(LESS&& less, BitMap enabled, SizeType from = 0) const -> ObjectType const*
+    {
+        SizeType indices[MAX_SIZE];
+        auto n = 0;
+        for(auto i=from; i<Data::num; i++) {
+            if(enabled.test(i)) {
+                indices[n++] = i;
+            }
+        }
+        if(n == 0) return nullptr;
+
+        auto found = std::min_element(indices, indices + n, [&](auto&& l, auto&& r){
+            return less((*this)[l], (*this)[r]);
+        });
+        return (found == indices + n) ? nullptr : &(*this)[*found];
+    }
+
+    template<typename LESS>
+    auto MinElem(LESS&& less, BitMap enabled, SizeType from = 0) -> ObjectType*
+    {
+        return const_cast<ObjectType*>(const_cast<ReadOnlyArrayLike const*>(this)->MinElem(std::forward<LESS>(less), enabled, from));
+    }
+
+    template<typename LESS>
+    auto MinElemIndex(LESS&& less, BitMap enabled, SizeType from = 0) const -> std::optional<SizeType>
+    {
+        auto found = MinElem(std::forward<LESS>(less), enabled, from);
+        return (found == nullptr) ? std::nullopt : std::optional{found - &(*this)[0]};
+    }
+
+    template<typename LESS>
+    auto MinElem(LESS&& less, SizeType from = 0) -> ObjectType*
+    {
+        return const_cast<ObjectType*>(const_cast<ReadOnlyArrayLike const*>(this)->MinElem(std::forward<LESS>(less), from));
+    }
+
+    template<typename LESS>
+    auto MinElemIndex(LESS&& less, SizeType from = 0) const -> std::optional<SizeType>
+    {
+        auto found = MinElem(std::forward<LESS>(less), from);
+        return (found == nullptr) ? std::nullopt : std::optional{found - &(*this)[0]};
+    }
+
+    template<typename LESS>
+    auto MaxElem(LESS&& less, SizeType from = 0) const -> ObjectType const*
+    {
+        if(Data::num <= from) return nullptr;
+        auto found = std::max_element(Data::objs + from, Data::objs + Data::num, [&](auto&& l, auto&& r){
+            return less(Trait::ToObject(l), Trait::ToObject(r));
+        });
+        return (found == Data::objs + Data::num) ? nullptr : &Trait::ToObject(*found);
+    }
+
+    template<typename LESS>
+    auto MaxElem(LESS&& less, SizeType from = 0) -> ObjectType*
+    {
+        return const_cast<ObjectType*>(const_cast<ReadOnlyArrayLike const*>(this)->MaxElem(std::forward<LESS>(less), from));
+    }
+
+    template<typename LESS>
+    auto MaxElemIndex(LESS&& less, SizeType from = 0) const -> std::optional<SizeType>
+    {
+        auto found = MaxElem(std::forward<LESS>(less), from);
+        return (found == nullptr) ? std::nullopt : std::optional{found - &(*this)[0]};
     }
 };
 
