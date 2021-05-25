@@ -36,6 +36,7 @@ SCENARIO("Placement") {
 
     REQUIRE(cons);
     REQUIRE(obj->a == 100);
+    REQUIRE((*obj).a == 100);
     REQUIRE(obj->b == CO_MAGIC);
 
     obj.Destroy();
