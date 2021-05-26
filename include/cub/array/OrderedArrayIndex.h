@@ -39,11 +39,11 @@ struct OrderedArrayIndex {
     }
 
     auto Sort(ARRAY const& array, SizeType required) -> SizeType {
-        return Sort(array, DEFAULT_LESS_THAN, required);
+        return Sort(array, required, DEFAULT_LESS_THAN);
     }
 
     auto DescSort(ARRAY const& array, SizeType required) -> SizeType {
-        return Sort(array, DEFAULT_GREATER_THAN, required);
+        return Sort(array, required, DEFAULT_GREATER_THAN);
     }
 
     template<typename LESS, __lEsS_cHeCkEr>
@@ -58,6 +58,19 @@ struct OrderedArrayIndex {
 
     auto DescSort(ARRAY const& array, SizeType required, BitMap enabled) -> SizeType {
         return Sort(DEFAULT_GREATER_THAN, required, enabled);
+    }
+
+    template<typename LESS, __lEsS_cHeCkEr>
+    auto Sort(ARRAY const& array, BitMap enabled, LESS&& less) -> SizeType {
+        return Sort(array, array.GetNum(), enabled, std::forward<LESS>(less));
+    }
+
+    auto Sort(ARRAY const& array, BitMap enabled) -> SizeType {
+        return Sort(array, enabled, DEFAULT_LESS_THAN);
+    }
+
+    auto DescSort(ARRAY const& array, BitMap enabled) -> SizeType {
+        return Sort(array, enabled, DEFAULT_GREATER_THAN);
     }
 
     auto operator[](SizeType n) -> SizeType {
@@ -79,7 +92,7 @@ private:
 
     template<typename LESS>
     auto DoSort(ARRAY const& array, SizeType required, LESS&& less) -> SizeType {
-        required = std::min(required, array.GetNum());
+        required = std::min(required, numOfIndices);
         if(required == 0) return 0;
         std::partial_sort(indices, indices + required, indices + numOfIndices, [&](auto l, auto r) {
             return less(array[l], array[r]);
@@ -89,9 +102,13 @@ private:
 
     auto InitIndices(ARRAY const& array, BitMap enabled) {
         numOfIndices = 0;
+        if(enabled.none()) return;
+        BitMap remain = enabled;
         for (auto i=0; i<array.GetNum(); i++) {
-            if(enabled.test(i)) {
+            if(remain.test(i)) {
                 indices[numOfIndices++] = i;
+                remain.reset(i);
+                if(remain.none()) break;
             }
         }
     }

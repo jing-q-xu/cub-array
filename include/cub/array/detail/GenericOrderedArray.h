@@ -58,6 +58,19 @@ namespace detail {
             return indices.DescSort(Parent::array, required, enabled);
         }
 
+        template<typename LESS, __lEsS_cHeCkEr>
+        auto Sort(BitMap enabled, LESS&& less) -> SizeType {
+            return indices.Sort(Parent::array, enabled, std::forward<LESS>(less));
+        }
+
+        auto Sort(BitMap enabled) -> SizeType {
+            return indices.Sort(Parent::array, enabled);
+        }
+
+        auto DescSort(BitMap enabled) -> SizeType {
+            return indices.DescSort(Parent::array, enabled);
+        }
+
         auto operator[](SizeType n) -> decltype(auto) {
             return (Parent::array[indices[n]]);
         }

@@ -23,7 +23,58 @@ SCENARIO("OrderedArray") {
 
     REQUIRE(3 == array.DescSort());
 
-    REQUIRE(array[2] == 2);
-    REQUIRE(array[1] == 7);
     REQUIRE(array[0] == 10);
+    REQUIRE(array[1] == 7);
+    REQUIRE(array[2] == 2);
+
+
+
+    REQUIRE(1 == array.Sort(1));
+    REQUIRE(array[0] == 2);
+
+    REQUIRE(1 == array.DescSort(1));
+    REQUIRE(array[0] == 10);
+
+    decltype(array)::BitMap bitmap;
+    bitmap.set(0);
+
+    REQUIRE(1 == array.Sort(bitmap));
+    REQUIRE(array[0] == 10);
+
+    REQUIRE(1 == array.DescSort(bitmap));
+    REQUIRE(array[0] == 10);
+
+    bitmap.set(1);
+
+    REQUIRE(2 == array.Sort(bitmap));
+    REQUIRE(array[0] == 2);
+    REQUIRE(array[1] == 10);
+
+    REQUIRE(2 == array.DescSort(bitmap));
+    REQUIRE(array[0] == 10);
+    REQUIRE(array[1] == 2);
+
+    bitmap.reset(1);
+    bitmap.set(2);
+
+    REQUIRE(2 == array.Sort(bitmap));
+    REQUIRE(array[0] == 7);
+    REQUIRE(array[1] == 10);
+
+    REQUIRE(2 == array.DescSort(bitmap));
+    REQUIRE(array[0] == 10);
+    REQUIRE(array[1] == 7);
+
+    bitmap.set(1);
+
+    REQUIRE(3 == array.Sort(bitmap));
+    REQUIRE(array[0] == 2);
+    REQUIRE(array[1] == 7);
+    REQUIRE(array[2] == 10);
+
+    REQUIRE(3 == array.DescSort(bitmap));
+    REQUIRE(array[0] == 10);
+    REQUIRE(array[1] == 7);
+    REQUIRE(array[2] == 2);
+
 }
