@@ -35,7 +35,13 @@ namespace detail {
 }
 
 template<typename T, std::size_t MAX_NUM>
-using ArrayView = typename detail::ArrayViewTrait<T, MAX_NUM>::Type;
+struct ArrayView : detail::ArrayViewTrait<T, MAX_NUM>::Type
+{
+    using Parent = typename detail::ArrayViewTrait<T, MAX_NUM>::Type;
+    using Parent ::Parent;
+};
 
+template<typename T, std::size_t MAX_NUM>
+ArrayView(T const (&)[MAX_NUM], std::size_t) -> ArrayView<T, MAX_NUM>;
 
 #endif //CUB_ARRAY_ARRAYVIEW_H

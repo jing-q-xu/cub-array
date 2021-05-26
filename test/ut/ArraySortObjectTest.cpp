@@ -28,5 +28,4 @@ SCENARIO("ArraySortObject") {
     });
 
     REQUIRE(cnt == 3);
-
 }
