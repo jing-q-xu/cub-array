@@ -9,20 +9,7 @@
 #include <cub/array/detail/ArrayHolder.h>
 #include <cub/array/detail/ArrayLike.h>
 
-namespace detail {
-    template<typename T, std::size_t MAX_NUM>
-    struct ObjectArrayTrait
-    {
-        using Base = ArrayLike<detail::ArrayHolder<T, MAX_NUM, Placement<T>>>;
-
-        struct Type : Base {
-            using Base::Base;
-        };
-    };
-}
-
 template<typename T, std::size_t MAX_NUM>
-using ObjectArray = typename detail::ObjectArrayTrait<T, MAX_NUM>::Type;
-
+using ObjectArray = detail::ArrayLike<detail::ArrayHolder<T, MAX_NUM, Placement<T>>>;
 
 #endif //CUB_ARRAY_OBJECTARRAY_H

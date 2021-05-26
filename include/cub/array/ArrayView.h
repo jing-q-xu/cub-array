@@ -25,7 +25,7 @@ namespace detail {
             SizeType num;
         };
 
-        using Base = ReadOnlyArrayLike<DataHolder>;
+        using Base = detail::ReadOnlyArrayLike<DataHolder>;
 
     public:
         struct Type : Base {

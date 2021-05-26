@@ -19,7 +19,7 @@ namespace {
         }
     };
 
-    using IntArray = ReadOnlyArrayLike<IntArrayHolder>;
+    using IntArray = detail::ReadOnlyArrayLike<IntArrayHolder>;
 }
 
 SCENARIO("ReadOnlyArrayLike ForEach") {
@@ -150,7 +150,7 @@ namespace {
             }
         }
     };
-    using PlacementArray = ReadOnlyArrayLike<PlacementArrayHolder>;
+    using PlacementArray = detail::ReadOnlyArrayLike<PlacementArrayHolder>;
 }
 
 SCENARIO("Placement ReadOnlyArrayLike ForEach") {
