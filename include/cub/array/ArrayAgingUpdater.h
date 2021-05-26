@@ -25,7 +25,7 @@ private:
                 return policy.Matches(fromElem, toElem);
             });
             if(index) {
-                policy.OnFound(to[*index]);
+                policy.OnFound(to[*index], fromElem);
                 updateFlag.set(i);
             } else {
                 policy.OnNotFound(to[*index]);
@@ -62,21 +62,19 @@ private:
     }
 
     auto SlowAppend() -> void {
-        ObjectArray<typename POLICY::TEMP_OBJECT, FROM_ARRAY::MAX_SIZE> toBeAppended{};
+        ObjectArray<typename POLICY::TempObject, FROM_ARRAY::MAX_SIZE> toBeAppended{};
         AppendTo(toBeAppended);
         ArraySortObject sorted{toBeAppended};
         auto&& less = [&](auto&& lhs, auto&& rhs) {
             return policy.Less(lhs, rhs);
         };
-        auto cnt = sorted.Sort(less);
 
+        auto cnt = sorted.Sort(less);
         auto rest = to.GetFreeNum();
-        for(auto i=0; i<rest; i++) {
-            policy.Append(to, sorted[i]);
-        }
 
         std::bitset<TO_ARRAY::MAX_SIZE> removable = policy.GetRemovable();
         std::bitset<TO_ARRAY::MAX_SIZE> removed;
+
         for(auto i=rest; i<cnt; i++) {
             if(removable.none()) break;
             auto elemIndex = to.MinElemIndex(less, removable);
@@ -88,6 +86,10 @@ private:
 
         if(removed.any()) {
             policy.OnRemoved(removed);
+        }
+
+        for(auto i=0; i<rest; i++) {
+            policy.Append(to, sorted[i]);
         }
     }
 

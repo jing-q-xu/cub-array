@@ -17,6 +17,8 @@ namespace {
     };
 
     struct Policy {
+        using TempObject = long;
+        using TempArray = ObjectArray<TempObject, 5>;
         using Array = ObjectArray<int, 10>;
         using SizeType = typename Array::SizeType ;
 
@@ -24,38 +26,37 @@ namespace {
             return phy.a == local;
         }
 
-        using TEMP_OBJECT = long;
-
-        auto Less(TEMP_OBJECT const&, TEMP_OBJECT const& ) -> bool {
-            return false;
+        auto Less(TempObject const& l, TempObject const& r) -> bool {
+            return l < r;
         }
 
-        auto OnFound(int local) -> void {
-
+        auto OnFound(int& local, Phy const& phy) -> void {
+            local += phy.a;
         }
 
-        auto OnNotFound(int local) -> void {
-
+        auto OnNotFound(int& local) -> void {
+            local += 1;
         }
 
-        auto Append(Array& to, Phy const&) -> void
+        auto Append(Array& to, Phy const& phy) -> void
         {
-
+            to.Append(phy.a);
         }
 
-        auto Append(Array& to, long const&) -> void
+        auto Append(TempArray& to, Phy const& phy) -> void
         {
-
+            to.Append(phy.a);
         }
 
-        auto Append(ObjectArray<TEMP_OBJECT, 5>& to, Phy const&) -> void
+        auto Append(Array& to, TempObject const& obj) -> void
         {
-
+            to.Append((int)obj);
         }
 
-        auto Replace(Array& to, SizeType index, long const&) -> void
-        {
 
+        auto Replace(Array& to, SizeType index, TempObject const& obj) -> void
+        {
+            to.Replace(index, (int)obj);
         }
 
         auto GetRemovable() const -> std::bitset<10> {
