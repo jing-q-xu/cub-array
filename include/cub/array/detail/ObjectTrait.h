@@ -30,7 +30,7 @@ namespace detail {
         template<typename ... ARGS>
         static auto Replace(ElemType & elem, ARGS&& ... args) -> void {
             elem.~ElemType();
-            elem = ObjectType{std::forward<ARGS>(args)...};
+            Emplace(elem, std::forward<ARGS>(args) ...);
         }
 
         static auto Destroy(ElemType & elem) -> void {
@@ -55,6 +55,7 @@ namespace detail {
         static auto Emplace(ElemType & elem, ARGS&& ... args) -> void {
             elem.template Emplace(std::forward<ARGS>(args)...);
         }
+
         template<typename ... ARGS>
         static auto Replace(ElemType & elem, ARGS&& ... args) -> void {
             elem.template Replace(std::forward<ARGS>(args)...);

@@ -76,6 +76,7 @@ namespace detail {
             return (Trait::ToObject(Data::objs[n]));
         }
 
+
     private:
         template<typename OP, __oP_cHeCkEr>
         auto Visit(OP &&op, SizeType i) -> void {
@@ -96,7 +97,7 @@ namespace detail {
         }
 
         template<typename PRED, __pReD_cHeCkEr>
-        auto Pred(PRED &&pred, SizeType i) const -> bool {
+        auto Pred(PRED&& pred, SizeType i) const -> bool {
             if constexpr (std::is_invocable_r_v<bool, PRED, ObjectType const &, SizeType>) {
                 return pred((*this)[i], i);
             } else {
@@ -118,20 +119,20 @@ namespace detail {
 
         }
 
-        auto GetObj(std::optional<SizeType> index) const -> ObjectType const * {
+        auto GetObj(std::optional<SizeType> index) const -> auto {
             return index ? &(*this)[*index] : nullptr;
         }
 
     public:
         template<typename OP, __oP_cHeCkEr>
-        auto ForEach(OP &&op, std::size_t from = 0) {
+        auto ForEach(OP &&op, std::size_t from = 0) -> void {
             for (auto i = from; i < Data::num; i++) {
                 Visit(std::forward<OP>(op), i);
             }
         }
 
         template<typename OP, __oP_cHeCkEr>
-        auto ForEach(OP &&op, BitMap enabled, std::size_t from = 0) {
+        auto ForEach(OP &&op, BitMap enabled, std::size_t from = 0) -> void {
             for (auto i = from; i < Data::num; i++) {
                 if (enabled.test(i)) {
                     Visit(std::forward<OP>(op), i);
@@ -140,14 +141,14 @@ namespace detail {
         }
 
         template<typename OP, __oP_cHeCkEr>
-        auto ForEach(OP &&op, std::size_t from = 0) const {
+        auto ForEach(OP &&op, std::size_t from = 0) const -> void {
             for (auto i = from; i < Data::num; i++) {
                 Visit(std::forward<OP>(op), i);
             }
         }
 
         template<typename OP, __oP_cHeCkEr>
-        auto ForEach(OP &&op, BitMap enabled, std::size_t from = 0) const {
+        auto ForEach(OP &&op, BitMap enabled, std::size_t from = 0) const -> void {
             for (auto i = from; i < Data::num; i++) {
                 if (enabled.test(i)) {
                     Visit(std::forward<OP>(op), i);
@@ -166,12 +167,12 @@ namespace detail {
         }
 
         template<typename PRED, __pReD_cHeCkEr>
-        auto Find(PRED &&pred, SizeType from = 0) const -> ObjectType const * {
+        auto Find(PRED &&pred, SizeType from = 0) const -> auto {
             return GetObj(FindIndex(pred, from));
         }
 
         template<typename PRED, __pReD_cHeCkEr>
-        auto Find(PRED &&pred, SizeType from = 0) -> ObjectType * {
+        auto Find(PRED &&pred, SizeType from = 0) -> auto {
             return const_cast<ObjectType *>(GetObj(FindIndex(pred, from)));
         }
 
@@ -197,7 +198,7 @@ namespace detail {
         }
 
         template<typename PRED, __pReD_cHeCkEr>
-        auto Find(PRED &&pred, BitMap enabled, SizeType from = 0) const -> ObjectType const * {
+        auto Find(PRED &&pred, BitMap enabled, SizeType from = 0) const -> auto {
             return GetObj(FindIndex(pred, enabled, from));
         }
 
