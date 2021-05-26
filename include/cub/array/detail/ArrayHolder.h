@@ -16,6 +16,19 @@ namespace detail {
         using SizeType = DeduceSizeType_t<MAX_NUM>;
         using Trait = ObjectTrait<OBJ>;
 
+    private:
+        static constexpr auto COULD_COPY = std::is_trivially_copyable_v<OBJ> &&
+                           std::is_trivially_copy_assignable_v<OBJ> &&
+                           std::is_trivially_copy_constructible_v<OBJ>;
+
+        auto Clear() -> void {
+            if constexpr (!std::is_trivially_destructible_v<OBJ>) {
+                for(int i=0; i<num; i++) Trait::Destroy(objs[i]);
+            }
+            num = 0;
+        }
+
+    public:
         ArrayHolder() = default;
         ArrayHolder(ArrayHolder const& rhs) : num{rhs.num} {
             CopyFrom(rhs);
@@ -41,25 +54,25 @@ namespace detail {
             Clear();
         }
 
-    private:
-        auto Clear() -> void {
-            for(int i=0; i<num; i++) {
-                Trait::Destroy(objs[i]);
-            }
-            num = 0;
-        }
-
         auto MoveFrom(ArrayHolder&& rhs) {
-            for(int i=0; i<num; i++) {
-                Trait::Emplace(objs[i], std::move(Trait::ToObject(rhs.objs[i])));
+            if constexpr (std::is_trivially_move_assignable_v<OBJ> && std::is_trivially_move_constructible_v<OBJ> && COULD_COPY) {
+                ::memcpy(objs, rhs.objs, sizeof(OBJ) * num);
+            } else {
+                for(int i=0; i<num; i++) {
+                    Trait::Emplace(objs[i], std::move(Trait::ToObject(rhs.objs[i])));
+                }
             }
 
             rhs.Clear();
         }
 
         auto CopyFrom(ArrayHolder const& rhs) {
-            for(int i=0; i<num; i++) {
-                ObjectTrait<OBJ>::Emplace(objs[i], Trait::ToObject(rhs.objs[i]));
+            if constexpr (COULD_COPY) {
+                ::memcpy(objs, rhs.objs, sizeof(OBJ) * num);
+            } else {
+                for(int i=0; i<num; i++) {
+                    ObjectTrait<OBJ>::Emplace(objs[i], Trait::ToObject(rhs.objs[i]));
+                }
             }
         }
 

@@ -31,14 +31,16 @@ namespace detail {
             }
         }
 
-        template<typename ... ARGS>
-        static auto Replace(ElemType & elem, ARGS&& ... args) -> void {
-            elem.~ElemType();
-            Emplace(elem, std::forward<ARGS>(args) ...);
+        static auto Destroy(ElemType & elem) -> void {
+            if constexpr (!std::is_trivially_destructible_v<ElemType>) {
+                elem.~ElemType();
+            }
         }
 
-        static auto Destroy(ElemType & elem) -> void {
-            elem.~ElemType();
+        template<typename ... ARGS>
+        static auto Replace(ElemType & elem, ARGS&& ... args) -> void {
+            Destroy(elem);
+            Emplace(elem, std::forward<ARGS>(args) ...);
         }
     };
 

@@ -15,17 +15,23 @@ struct Placement
 
     template<typename ... ARGS>
     auto Emplace(ARGS&& ... args) -> T* {
-        return new (obj) T{ std::forward<ARGS>(args)... };
+        if constexpr (std::is_aggregate_v<T>) {
+            return new (obj) T{ std::forward<ARGS>(args)... };
+        } else {
+            return new (obj) T( std::forward<ARGS>(args)... );
+        }
+    }
+
+    auto Destroy() -> void {
+        if constexpr (!std::is_trivially_destructible_v<T>) {
+            GetObject()->~T();
+        }
     }
 
     template<typename ... ARGS>
     auto Replace(ARGS&& ... args) -> T* {
         Destroy();
         return Emplace(std::forward<ARGS>(args)...);
-    }
-
-    auto Destroy() -> void {
-        GetObject()->~T();
     }
 
     auto GetObject() const -> T const* {

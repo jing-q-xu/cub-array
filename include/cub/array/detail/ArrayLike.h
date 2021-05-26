@@ -40,11 +40,12 @@ namespace detail {
 
         auto Erase(SizeType i) -> void {
             if (i >= Data::num) return;
-            if (i < Data::num - 1) {
-                Trait::Replace(Data::objs[i], std::move((*this)[Data::num - 1]));
+            --Data::num;
+            if (i < Data::num) {
+                Trait::Replace(Data::objs[i], std::move((*this)[Data::num]));
             }
 
-            Trait::Destroy(Data::objs[--Data::num]);
+            Trait::Destroy(Data::objs[Data::num]);
         }
 
         auto Remove(ObjectType *p) -> void {
