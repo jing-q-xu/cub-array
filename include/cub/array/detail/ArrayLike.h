@@ -6,6 +6,7 @@
 #define CUB_ARRAY_ARRAYLIKE_H
 
 #include <cub/array/detail/ReadOnlyArrayLike.h>
+#include <cub/array/detail/LessChecker.h>
 
 namespace detail {
     template<typename DATA_HOLDER>
@@ -57,6 +58,19 @@ namespace detail {
                 Trait::Destroy(Data::objs[i]);
             }
             Data::num = 0;
+        }
+
+        template<typename LESS, __lEsS_cHeCkEr>
+        auto Sort(LESS&& less) -> void {
+            std::stable_sort(Data::objs, Data::objs + Data::num, std::forward<LESS>(less));
+        }
+
+        auto Sort() -> void {
+            Sort(DEFAULT_LESS_THAN);
+        }
+
+        auto DescSort() -> void {
+            Sort(DEFAULT_GREATER_THAN);
         }
     };
 }

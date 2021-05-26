@@ -95,6 +95,10 @@ namespace detail {
             return &(Parent::array);
         }
 
+    protected:
+        auto GetArray() -> decltype(auto) {
+            return (Parent::array);
+        }
     private:
         OrderedArrayIndex<ARRAY> indices;
     };

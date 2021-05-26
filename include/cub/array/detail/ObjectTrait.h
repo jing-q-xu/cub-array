@@ -24,7 +24,11 @@ namespace detail {
 
         template<typename ... ARGS>
         static auto Emplace(ElemType & elem, ARGS&& ... args) -> void {
-            elem = ObjectType{std::forward<ARGS>(args)...};
+            if constexpr (std::is_aggregate_v<ElemType>) {
+                elem = ObjectType{std::forward<ARGS>(args)...};
+            } else {
+                elem = ObjectType(std::forward<ARGS>(args)...);
+            }
         }
 
         template<typename ... ARGS>

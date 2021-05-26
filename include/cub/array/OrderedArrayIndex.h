@@ -7,6 +7,7 @@
 
 #include <cub/base/DeduceSizeType.h>
 #include <cub/array/detail/LessChecker.h>
+#include <cub/array/ValueArray.h>
 #include <cstdint>
 #include <algorithm>
 #include <bitset>
@@ -84,29 +85,31 @@ struct OrderedArrayIndex {
 private:
     template<typename LESS>
     auto FullSort(ARRAY const& array, LESS&& less) -> SizeType {
-        std::stable_sort(indices, indices + numOfIndices, [&](auto l, auto r) {
+        SizeType* begin = &indices[0];
+        std::stable_sort(begin, begin + indices.GetNum(), [&](auto l, auto r) {
             return less(array[l], array[r]);
         });
-        return numOfIndices;
+        return indices.GetNum();
     }
 
     template<typename LESS>
     auto DoSort(ARRAY const& array, SizeType required, LESS&& less) -> SizeType {
-        required = std::min(required, numOfIndices);
+        required = std::min(required, indices.GetNum());
         if(required == 0) return 0;
-        std::partial_sort(indices, indices + required, indices + numOfIndices, [&](auto l, auto r) {
+        SizeType* begin = &indices[0];
+        std::partial_sort(begin, begin + required, begin + indices.GetNum(), [&](auto l, auto r) {
             return less(array[l], array[r]);
         });
         return required;
     }
 
     auto InitIndices(ARRAY const& array, BitMap enabled) {
-        numOfIndices = 0;
+        indices.Clear();
         if(enabled.none()) return;
         BitMap remain = enabled;
         for (auto i=0; i<array.GetNum(); i++) {
             if(remain.test(i)) {
-                indices[numOfIndices++] = i;
+                indices.Append(i);
                 remain.reset(i);
                 if(remain.none()) break;
             }
@@ -114,15 +117,14 @@ private:
     }
 
     auto InitIndices(ARRAY const& array) {
-        numOfIndices = 0;
+        indices.Clear();
         for (auto i=0; i<array.GetNum(); i++) {
-            indices[numOfIndices++] = i;
+            indices.Append(i);
         }
     }
 
 private:
-    SizeType indices[MAX_SIZE];
-    SizeType numOfIndices;
+    ValueArray<SizeType, MAX_SIZE> indices;
 };
 
 #endif //CUB_ARRAY_ORDEREDARRAYINDEX_H

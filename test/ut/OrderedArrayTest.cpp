@@ -27,8 +27,6 @@ SCENARIO("OrderedArray") {
     REQUIRE(array[1] == 7);
     REQUIRE(array[2] == 2);
 
-
-
     REQUIRE(1 == array.Sort(1));
     REQUIRE(array[0] == 2);
 
@@ -76,5 +74,4 @@ SCENARIO("OrderedArray") {
     REQUIRE(array[0] == 10);
     REQUIRE(array[1] == 7);
     REQUIRE(array[2] == 2);
-
 }
