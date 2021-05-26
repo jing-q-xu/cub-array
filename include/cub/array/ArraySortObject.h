@@ -9,6 +9,7 @@
 #include <cub/array/detail/LessChecker.h>
 #include <algorithm>
 #include <bitset>
+#include "OrderedArrayIndex.h"
 
 template<typename ARRAY>
 struct ArraySortObject {
@@ -21,44 +22,41 @@ struct ArraySortObject {
 
     template<typename LESS, __lEsS_cHeCkEr>
     auto Sort(LESS&& less) -> SizeType {
-        InitIndices();
-        return FullSort(std::forward<LESS>(less));
+        return indices.Sort(array, std::forward<LESS>(less));
     }
 
     auto Sort() -> SizeType {
-        return Sort(DEFAULT_LESS_THAN);
+        return indices.Sort(array);
     }
 
     auto DescSort() -> SizeType {
-        return Sort(DEFAULT_GREATER_THAN);
+        return indices.DescSort(array);
     }
 
     template<typename LESS, __lEsS_cHeCkEr>
     auto Sort(SizeType required, LESS&& less) -> SizeType {
-        InitIndices();
-        return DoSort(required, std::forward<LESS>(less));
+        return indices.Sort(array, required, std::forward<LESS>(less));
     }
 
     auto Sort(SizeType required) -> SizeType {
-        return Sort(DEFAULT_LESS_THAN, required);
+        return indices.Sort(array, required);
     }
 
     auto DescSort(SizeType required) -> SizeType {
-        return Sort(DEFAULT_GREATER_THAN, required);
+        return indices.DescSort(array, required);
     }
 
     template<typename LESS, __lEsS_cHeCkEr>
     auto Sort(SizeType required, BitMap enabled, LESS&& less) -> SizeType {
-        InitIndices(enabled);
-        return DoSort(required, std::forward<LESS>(less));
+        return indices.Sort(array, required, enabled, std::forward<LESS>(less));
     }
 
     auto Sort(SizeType required, BitMap enabled) -> SizeType {
-        return Sort(DEFAULT_LESS_THAN, required, enabled);
+        return indices.Sort(array, required, enabled);
     }
 
     auto DescSort(SizeType required, BitMap enabled) -> SizeType {
-        return Sort(DEFAULT_GREATER_THAN, required, enabled);
+        return indices.DescSort(array, required, enabled);
     }
 
     auto operator[](SizeType n) -> decltype(auto) {
@@ -70,44 +68,8 @@ struct ArraySortObject {
     }
 
 private:
-    template<typename LESS>
-    auto FullSort(LESS&& less) -> SizeType {
-        std::stable_sort(indices, indices + numOfIndices, [&](auto l, auto r) {
-            return less(array[l], array[r]);
-        });
-        return numOfIndices;
-    }
-
-    template<typename LESS>
-    auto DoSort(SizeType required, LESS&& less) -> SizeType {
-        required = std::min(required, array.GetNum());
-        if(required == 0) return 0;
-        std::partial_sort(indices, indices + required, indices + numOfIndices, [&](auto l, auto r) {
-            return less(array[l], array[r]);
-        });
-        return required;
-    }
-
-    auto InitIndices(BitMap enabled) {
-        numOfIndices = 0;
-        for (auto i=0; i<array.GetNum(); i++) {
-            if(enabled.test(i)) {
-                indices[numOfIndices++] = i;
-            }
-        }
-    }
-
-    auto InitIndices() {
-        numOfIndices = 0;
-        for (auto i=0; i<array.GetNum(); i++) {
-            indices[numOfIndices++] = i;
-        }
-    }
-
-private:
     ARRAY& array;
-    SizeType indices[MAX_SIZE];
-    SizeType numOfIndices;
+    OrderedArrayIndex<ARRAY> indices;
 };
 
 #endif //CUB_ARRAY_ARRAYSORTOBJECT_H
