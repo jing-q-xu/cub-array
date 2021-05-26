@@ -8,9 +8,12 @@
 #include <cub/array/ArraySortObject.h>
 #include <cub/array/ObjectArray.h>
 
-template<typename POLICY, typename TO_ARRAY, typename FROM_ARRAY>
+template<typename POLICY>
 struct ArrayAgingUpdater {
-    ArrayAgingUpdater(FROM_ARRAY const& from, TO_ARRAY& to, POLICY& policy)
+    using FromArray = typename POLICY::FromArray;
+    using ToArray = typename POLICY::ToArray;
+
+    ArrayAgingUpdater(FromArray const& from, ToArray& to, POLICY& policy)
             : from{from}, to{to}, policy{policy} {}
 
     auto operator()() -> void {
@@ -41,7 +44,7 @@ private:
             return;
         }
 
-        if(FROM_ARRAY::MAX_SIZE - updateFlag.count() < to.GetFreeNum()) {
+        if(FromArray::MAX_SIZE - updateFlag.count() < to.GetFreeNum()) {
             FastAppend();
         } else {
             SlowAppend();
@@ -62,7 +65,7 @@ private:
     }
 
     auto SlowAppend() -> void {
-        ObjectArray<typename POLICY::TempObject, FROM_ARRAY::MAX_SIZE> toBeAppended{};
+        ObjectArray<typename POLICY::TempObject, FromArray::MAX_SIZE> toBeAppended{};
         AppendTo(toBeAppended);
         ArraySortObject sorted{toBeAppended};
         auto&& less = [&](auto&& lhs, auto&& rhs) {
@@ -72,8 +75,8 @@ private:
         auto cnt = sorted.Sort(less);
         auto rest = to.GetFreeNum();
 
-        std::bitset<TO_ARRAY::MAX_SIZE> removable = policy.GetRemovable();
-        std::bitset<TO_ARRAY::MAX_SIZE> removed;
+        std::bitset<ToArray::MAX_SIZE> removable = policy.GetRemovable();
+        std::bitset<ToArray::MAX_SIZE> removed;
 
         for(auto i=rest; i<cnt; i++) {
             if(removable.none()) break;
@@ -94,10 +97,10 @@ private:
     }
 
 private:
-    FROM_ARRAY const& from;
-    TO_ARRAY&         to;
+    FromArray const& from;
+    ToArray&         to;
     POLICY&           policy;
-    using UpdateFlag = std::bitset<FROM_ARRAY::MAX_SIZE>;
+    using UpdateFlag = std::bitset<FromArray::MAX_SIZE>;
     UpdateFlag updateFlag{};
 };
 

@@ -17,10 +17,12 @@ namespace {
     };
 
     struct Policy {
+        using FromArray = ArrayView<Phy, 5>;
+        using ToArray = ObjectArray<int, 10>;
+        using BitMap = typename ToArray::BitMap;
+
         using TempObject = long;
-        using TempArray = ObjectArray<TempObject, 5>;
-        using Array = ObjectArray<int, 10>;
-        using SizeType = typename Array::SizeType ;
+        using TempArray = ObjectArray<TempObject, FromArray::MAX_SIZE>;
 
         auto Matches(Phy const& phy, int local) const -> bool {
             return phy.a == local;
@@ -38,7 +40,7 @@ namespace {
             local += 1;
         }
 
-        auto Append(Array& to, Phy const& phy) -> void
+        auto Append(ToArray& to, Phy const& phy) -> void
         {
             to.Append(phy.a);
         }
@@ -48,22 +50,21 @@ namespace {
             to.Append(phy.a);
         }
 
-        auto Append(Array& to, TempObject const& obj) -> void
+        auto Append(ToArray& to, TempObject const& obj) -> void
         {
             to.Append((int)obj);
         }
 
-
-        auto Replace(Array& to, SizeType index, TempObject const& obj) -> void
+        auto Replace(ToArray& to, ToArray::SizeType index, TempObject const& obj) -> void
         {
             to.Replace(index, (int)obj);
         }
 
-        auto GetRemovable() const -> std::bitset<10> {
+        auto GetRemovable() const -> BitMap {
             return 0;
         }
 
-        auto OnRemoved(std::bitset<10>) -> void {
+        auto OnRemoved(BitMap) -> void {
 
         }
     };
