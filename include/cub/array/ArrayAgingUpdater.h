@@ -71,7 +71,7 @@ private:
         AppendTo(toBeAppended, from);
         ArraySortObject sorted{toBeAppended};
 
-        auto cnt = sorted.Sort();
+        auto cnt = sorted.DescSort();
         auto rest = to.GetFreeNum();
 
         std::bitset<ToArray::MAX_SIZE> removable = policy.GetRemovable();

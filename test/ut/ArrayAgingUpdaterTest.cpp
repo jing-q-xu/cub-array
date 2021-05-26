@@ -105,8 +105,14 @@ SCENARIO("ArrayAgingUpdater") {
     }
 
     {
-        Ind ind{{{1, 2},{2,3},{7,4}, {8, 5}, {9, 10}}, 5};
+        Ind ind{{{1, 2},{2,3},{7,4}, {8, 10}, {9, 5}}, 5};
         update(ArrayView{ind.a, ind.num});
         REQUIRE(array.GetNum() == 6);
+        REQUIRE(array[0].id == 1);
+        REQUIRE(array[1].id == 2);
+        REQUIRE(array[2].id == 9);
+        REQUIRE(array[3].id == 4);
+        REQUIRE(array[4].id == 5);
+        REQUIRE(array[5].id == 8);
     }
 }

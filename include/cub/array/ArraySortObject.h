@@ -26,7 +26,11 @@ struct ArraySortObject {
     }
 
     auto Sort() -> SizeType {
-        return Sort([](auto&& l, auto&& r) { return l < r; });
+        return Sort(DEFAULT_LESS_THAN);
+    }
+
+    auto DescSort() -> SizeType {
+        return Sort(DEFAULT_GREATER_THAN);
     }
 
     template<typename LESS, __lEsS_cHeCkEr>

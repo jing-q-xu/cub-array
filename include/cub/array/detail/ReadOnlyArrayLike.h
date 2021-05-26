@@ -227,12 +227,12 @@ public:
 
     auto MinElem(BitMap enabled, SizeType from = 0) const -> ObjectType const*
     {
-        return MinElem(DEFAULT_LESS, enabled, from);
+        return MinElem(DEFAULT_LESS_THAN, enabled, from);
     }
 
     auto MinElem(BitMap enabled, SizeType from = 0) -> ObjectType*
     {
-        return MinElem(DEFAULT_LESS, enabled, from);
+        return MinElem(DEFAULT_LESS_THAN, enabled, from);
     }
 
     template<typename LESS, __lEsS_cHeCkEr>
@@ -244,7 +244,7 @@ public:
 
     auto MinElemIndex(BitMap enabled, SizeType from = 0) const -> std::optional<SizeType>
     {
-        return MinElemIndex(DEFAULT_LESS, enabled, from);
+        return MinElemIndex(DEFAULT_LESS_THAN, enabled, from);
     }
 
     template<typename LESS, __lEsS_cHeCkEr>
@@ -255,7 +255,7 @@ public:
 
     auto MinElem(SizeType from = 0) -> ObjectType*
     {
-        return MinElem(DEFAULT_LESS, from);
+        return MinElem(DEFAULT_LESS_THAN, from);
     }
 
     template<typename LESS, __lEsS_cHeCkEr>
@@ -267,17 +267,13 @@ public:
 
     auto MinElemIndex(SizeType from = 0) const -> std::optional<SizeType>
     {
-        return MinElemIndex(DEFAULT_LESS);
+        return MinElemIndex(DEFAULT_LESS_THAN);
     }
 
     template<typename LESS, __lEsS_cHeCkEr>
     auto MaxElem(LESS&& less, SizeType from = 0) const -> ObjectType const*
     {
-        if(Data::num <= from) return nullptr;
-        auto found = std::max_element(Data::objs + from, Data::objs + Data::num, [&](auto&& l, auto&& r){
-            return less(Trait::ToObject(l), Trait::ToObject(r));
-        });
-        return (found == Data::objs + Data::num) ? nullptr : &Trait::ToObject(*found);
+        return MinElem([&](auto&& l, auto r) { return less(r, l); }, from);
     }
 
     template<typename LESS, __lEsS_cHeCkEr>
