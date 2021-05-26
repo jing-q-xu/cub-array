@@ -8,60 +8,76 @@
 
 namespace {
     struct Phy {
-        int a;
-        int b;
+        int id;
+        int value;
     };
+
     struct Ind {
         Phy a[5];
         uint8_t num;
     };
 
+    struct Local {
+        int id;
+        int value;
+
+        auto operator<(Local const& rhs) const -> bool {
+            return value < rhs.value;
+        }
+    };
+
+    struct Temp {
+        int id;
+        int value;
+
+        auto operator<(Temp const& rhs) const -> bool {
+            return value < rhs.value;
+        }
+    };
+
     struct Policy {
         using FromArray = ArrayView<Phy, 5>;
-        using ToArray = ObjectArray<int, 10>;
+        using ToArray = ObjectArray<Local, 6>;
         using BitMap = typename ToArray::BitMap;
 
-        using TempObject = long;
+        using TempObject = Temp;
         using TempArray = ObjectArray<TempObject, FromArray::MAX_SIZE>;
 
-        auto Matches(Phy const& phy, int local) const -> bool {
-            return phy.a == local;
+        auto Matches(Phy const& phy, Local const& local) const -> bool {
+            return phy.id == local.id;
         }
 
-        auto Less(TempObject const& l, TempObject const& r) -> bool {
-            return l < r;
+        auto OnFound(Local& local, Phy const& phy) -> void {
+            local.value += phy.value;
         }
 
-        auto OnFound(int& local, Phy const& phy) -> void {
-            local += phy.a;
-        }
-
-        auto OnNotFound(int& local) -> void {
-            local += 1;
+        auto OnNotFound(Local& local) -> void {
+            local.value += 1;
         }
 
         auto Append(ToArray& to, Phy const& phy) -> void
         {
-            to.Append(phy.a);
+            to.Append(phy.id, phy.value);
         }
 
         auto Append(TempArray& to, Phy const& phy) -> void
         {
-            to.Append(phy.a);
+            to.Append(phy.id, phy.value);
         }
 
         auto Append(ToArray& to, TempObject const& obj) -> void
         {
-            to.Append((int)obj);
+            to.Append(obj.id, obj.value);
         }
 
         auto Replace(ToArray& to, ToArray::SizeType index, TempObject const& obj) -> void
         {
-            to.Replace(index, (int)obj);
+            to.Replace(index, obj.id, obj.value);
         }
 
         auto GetRemovable() const -> BitMap {
-            return 0;
+            BitMap map;
+            return map.flip();
         }
 
         auto OnRemoved(BitMap) -> void {
@@ -71,11 +87,18 @@ namespace {
 }
 
 SCENARIO("ArrayAgingUpdater") {
-    Ind ind{{{1, 2},{2,3},{3,4}, {4, 5}}, 4};
-    ObjectArray<int, 10> array;
-    ArrayView view{ind.a, ind.num};
-    Policy policy;
-    ArrayAgingUpdater updater{view, array,  policy};
 
-    updater();
+    ObjectArray<Local, 6> array;
+    Policy policy;
+    ArrayAgingUpdater updater{array,  policy};
+
+    {
+        Ind ind{{{1, 2},{2,3},{3,4}, {4, 5}, {5, 6}}, 5};
+        updater(ArrayView{ind.a, ind.num});
+    }
+
+    {
+        Ind ind{{{1, 2},{2,3},{7,4}, {8, 5}, {9, 10}}, 5};
+        updater(ArrayView{ind.a, ind.num});
+    }
 }

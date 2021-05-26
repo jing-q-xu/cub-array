@@ -6,6 +6,7 @@
 #define CUB_ARRAY_ARRAYSORTOBJECT_H
 
 #include <cub/base/DeduceSizeType.h>
+#include <cub/array/detail/LessChecker.h>
 #include <algorithm>
 #include <bitset>
 
@@ -14,25 +15,38 @@ struct ArraySortObject {
     constexpr static auto MAX_SIZE = ARRAY::MAX_SIZE;
     using SizeType = DeduceSizeType_t<MAX_SIZE>;
     using BitMap = std::bitset<MAX_SIZE>;
+    using ObjectType = typename ARRAY::ObjectType;
 
     ArraySortObject(ARRAY& array) : array{array} {}
 
-    template<typename LESS>
-    auto Sort(LESS&& less, SizeType from = 0) -> SizeType {
-        InitIndices(from);
+    template<typename LESS, __lEsS_cHeCkEr>
+    auto Sort(LESS&& less) -> SizeType {
+        InitIndices();
         return FullSort(std::forward<LESS>(less));
     }
 
-    template<typename LESS>
-    auto Sort(SizeType required, LESS&& less, SizeType from = 0) -> SizeType {
-        InitIndices(from);
-        return DoSort(required, from, std::forward<LESS>(less));
+    auto Sort() -> SizeType {
+        return Sort([](auto&& l, auto&& r) { return l < r; });
     }
 
-    template<typename LESS>
-    auto Sort(SizeType required, BitMap enabled, LESS&& less, SizeType from = 0) -> SizeType {
-        InitIndices(from, enabled);
-        return DoSort(required, from, std::forward<LESS>(less));
+    template<typename LESS, __lEsS_cHeCkEr>
+    auto Sort(SizeType required, LESS&& less) -> SizeType {
+        InitIndices();
+        return DoSort(required, std::forward<LESS>(less));
+    }
+
+    auto Sort(SizeType required) -> SizeType {
+        return Sort([](auto&& l, auto&& r) { return l < r; }, required);
+    }
+
+    template<typename LESS, __lEsS_cHeCkEr>
+    auto Sort(SizeType required, BitMap enabled, LESS&& less) -> SizeType {
+        InitIndices(enabled);
+        return DoSort(required, std::forward<LESS>(less));
+    }
+
+    auto Sort(SizeType required, BitMap enabled) -> SizeType {
+        return Sort([](auto&& l, auto&& r) { return l < r; }, required, enabled);
     }
 
     auto operator[](SizeType n) -> decltype(auto) {
@@ -53,27 +67,27 @@ private:
     }
 
     template<typename LESS>
-    auto DoSort(SizeType required, SizeType from, LESS&& less) -> SizeType {
-        if(required == 0 || from >= array.GetNum()) return 0;
-        required = std::min(required, array.GetNum() - from);
+    auto DoSort(SizeType required, LESS&& less) -> SizeType {
+        required = std::min(required, array.GetNum());
+        if(required == 0) return 0;
         std::partial_sort(indices, indices + required, indices + numOfIndices, [&](auto l, auto r) {
             return less(array[l], array[r]);
         });
         return required;
     }
 
-    auto InitIndices(SizeType from, BitMap enabled) {
+    auto InitIndices(BitMap enabled) {
         numOfIndices = 0;
-        for (auto i=from; i<array.GetNum(); i++) {
+        for (auto i=0; i<array.GetNum(); i++) {
             if(enabled.test(i)) {
                 indices[numOfIndices++] = i;
             }
         }
     }
 
-    auto InitIndices(SizeType from) {
+    auto InitIndices() {
         numOfIndices = 0;
-        for (auto i=from; i<array.GetNum(); i++) {
+        for (auto i=0; i<array.GetNum(); i++) {
             indices[numOfIndices++] = i;
         }
     }

@@ -8,6 +8,7 @@
 #include <cub/array/detail/ObjectTrait.h>
 #include <cub/base/DeduceSizeType.h>
 #include <cub/base/SizeOfArray.h>
+#include <cub/array/detail/LessChecker.h>
 #include <cstdint>
 #include <type_traits>
 #include <bitset>
@@ -190,7 +191,7 @@ public:
         return const_cast<ObjectType*>(GetObj(FindIndex(pred, enabled, from)));
     }
 
-    template<typename LESS>
+    template<typename LESS, __lEsS_cHeCkEr>
     auto MinElem(LESS&& less, SizeType from = 0) const -> ObjectType const*
     {
         if(Data::num <= from) return nullptr;
@@ -200,7 +201,7 @@ public:
         return (found == Data::objs + Data::num) ? nullptr : &Trait::ToObject(*found);
     }
 
-    template<typename LESS>
+    template<typename LESS, __lEsS_cHeCkEr>
     auto MinElem(LESS&& less, BitMap enabled, SizeType from = 0) const -> ObjectType const*
     {
         SizeType indices[MAX_SIZE];
@@ -218,33 +219,58 @@ public:
         return (found == indices + n) ? nullptr : &(*this)[*found];
     }
 
-    template<typename LESS>
+    template<typename LESS, __lEsS_cHeCkEr>
     auto MinElem(LESS&& less, BitMap enabled, SizeType from = 0) -> ObjectType*
     {
         return const_cast<ObjectType*>(const_cast<ReadOnlyArrayLike const*>(this)->MinElem(std::forward<LESS>(less), enabled, from));
     }
 
-    template<typename LESS>
+    auto MinElem(BitMap enabled, SizeType from = 0) const -> ObjectType const*
+    {
+        return MinElem(DEFAULT_LESS, enabled, from);
+    }
+
+    auto MinElem(BitMap enabled, SizeType from = 0) -> ObjectType*
+    {
+        return MinElem(DEFAULT_LESS, enabled, from);
+    }
+
+    template<typename LESS, __lEsS_cHeCkEr>
     auto MinElemIndex(LESS&& less, BitMap enabled, SizeType from = 0) const -> std::optional<SizeType>
     {
         auto found = MinElem(std::forward<LESS>(less), enabled, from);
         return (found == nullptr) ? std::nullopt : std::optional{found - &(*this)[0]};
     }
 
-    template<typename LESS>
+    auto MinElemIndex(BitMap enabled, SizeType from = 0) const -> std::optional<SizeType>
+    {
+        return MinElemIndex(DEFAULT_LESS, enabled, from);
+    }
+
+    template<typename LESS, __lEsS_cHeCkEr>
     auto MinElem(LESS&& less, SizeType from = 0) -> ObjectType*
     {
         return const_cast<ObjectType*>(const_cast<ReadOnlyArrayLike const*>(this)->MinElem(std::forward<LESS>(less), from));
     }
 
-    template<typename LESS>
+    auto MinElem(SizeType from = 0) -> ObjectType*
+    {
+        return MinElem(DEFAULT_LESS, from);
+    }
+
+    template<typename LESS, __lEsS_cHeCkEr>
     auto MinElemIndex(LESS&& less, SizeType from = 0) const -> std::optional<SizeType>
     {
         auto found = MinElem(std::forward<LESS>(less), from);
         return (found == nullptr) ? std::nullopt : std::optional{found - &(*this)[0]};
     }
 
-    template<typename LESS>
+    auto MinElemIndex(SizeType from = 0) const -> std::optional<SizeType>
+    {
+        return MinElemIndex(DEFAULT_LESS);
+    }
+
+    template<typename LESS, __lEsS_cHeCkEr>
     auto MaxElem(LESS&& less, SizeType from = 0) const -> ObjectType const*
     {
         if(Data::num <= from) return nullptr;
@@ -254,13 +280,13 @@ public:
         return (found == Data::objs + Data::num) ? nullptr : &Trait::ToObject(*found);
     }
 
-    template<typename LESS>
+    template<typename LESS, __lEsS_cHeCkEr>
     auto MaxElem(LESS&& less, SizeType from = 0) -> ObjectType*
     {
         return const_cast<ObjectType*>(const_cast<ReadOnlyArrayLike const*>(this)->MaxElem(std::forward<LESS>(less), from));
     }
 
-    template<typename LESS>
+    template<typename LESS, __lEsS_cHeCkEr>
     auto MaxElemIndex(LESS&& less, SizeType from = 0) const -> std::optional<SizeType>
     {
         auto found = MaxElem(std::forward<LESS>(less), from);

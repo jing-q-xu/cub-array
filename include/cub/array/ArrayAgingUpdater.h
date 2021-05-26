@@ -12,17 +12,19 @@ template<typename POLICY>
 struct ArrayAgingUpdater {
     using FromArray = typename POLICY::FromArray;
     using ToArray = typename POLICY::ToArray;
+    using TempObject = typename POLICY::TempObject;
+    using ToObject = typename ToArray::ObjectType;
 
-    ArrayAgingUpdater(FromArray const& from, ToArray& to, POLICY& policy)
-            : from{from}, to{to}, policy{policy} {}
+    ArrayAgingUpdater(ToArray& to, POLICY& policy)
+            : to{to}, policy{policy} {}
 
-    auto operator()() -> void {
-        Update();
-        TryAppend();
+    auto operator()(FromArray const& from) -> void {
+        Update(from);
+        TryAppend(from);
     }
 
 private:
-    auto Update() -> void {
+    auto Update(FromArray const& from) -> void {
         from.ForEach([this](auto&& fromElem, auto i){
             auto index = to.FindIndex([&](auto&& toElem) {
                 return policy.Matches(fromElem, toElem);
@@ -36,7 +38,7 @@ private:
         });
     }
 
-    auto TryAppend() -> void {
+    auto TryAppend(FromArray const& from) -> void {
         UpdateFlag allUpdated{};
         allUpdated.flip();
 
@@ -45,14 +47,14 @@ private:
         }
 
         if(FromArray::MAX_SIZE - updateFlag.count() < to.GetFreeNum()) {
-            FastAppend();
+            FastAppend(from);
         } else {
-            SlowAppend();
+            SlowAppend(from);
         }
     }
 
     template<typename TARGET>
-    auto AppendTo(TARGET&& target) {
+    auto AppendTo(TARGET&& target, FromArray const& from) {
         from.ForEach([&, this](auto&& fromElem, auto i) {
             if(!updateFlag.test(i)) {
                 policy.Append(target, fromElem);
@@ -60,19 +62,16 @@ private:
         });
     }
 
-    auto FastAppend() -> void {
-        AppendTo(to);
+    auto FastAppend(FromArray const& from) -> void {
+        AppendTo(to, from);
     }
 
-    auto SlowAppend() -> void {
-        ObjectArray<typename POLICY::TempObject, FromArray::MAX_SIZE> toBeAppended{};
-        AppendTo(toBeAppended);
+    auto SlowAppend(FromArray const& from) -> void {
+        ObjectArray<TempObject, FromArray::MAX_SIZE> toBeAppended{};
+        AppendTo(toBeAppended, from);
         ArraySortObject sorted{toBeAppended};
-        auto&& less = [&](auto&& lhs, auto&& rhs) {
-            return policy.Less(lhs, rhs);
-        };
 
-        auto cnt = sorted.Sort(less);
+        auto cnt = sorted.Sort();
         auto rest = to.GetFreeNum();
 
         std::bitset<ToArray::MAX_SIZE> removable = policy.GetRemovable();
@@ -80,7 +79,7 @@ private:
 
         for(auto i=rest; i<cnt; i++) {
             if(removable.none()) break;
-            auto elemIndex = to.MinElemIndex(less, removable);
+            auto elemIndex = to.MinElemIndex(removable);
             if(!elemIndex) break;
             removable.reset(*elemIndex);
             removed.set(*elemIndex);
@@ -97,9 +96,8 @@ private:
     }
 
 private:
-    FromArray const& from;
     ToArray&         to;
-    POLICY&           policy;
+    POLICY&          policy;
     using UpdateFlag = std::bitset<FromArray::MAX_SIZE>;
     UpdateFlag updateFlag{};
 };
