@@ -40,7 +40,11 @@ struct ArraySortObject {
     }
 
     auto Sort(SizeType required) -> SizeType {
-        return Sort([](auto&& l, auto&& r) { return l < r; }, required);
+        return Sort(DEFAULT_LESS_THAN, required);
+    }
+
+    auto DescSort(SizeType required) -> SizeType {
+        return Sort(DEFAULT_GREATER_THAN, required);
     }
 
     template<typename LESS, __lEsS_cHeCkEr>
@@ -50,7 +54,11 @@ struct ArraySortObject {
     }
 
     auto Sort(SizeType required, BitMap enabled) -> SizeType {
-        return Sort([](auto&& l, auto&& r) { return l < r; }, required, enabled);
+        return Sort(DEFAULT_LESS_THAN, required, enabled);
+    }
+
+    auto DescSort(SizeType required, BitMap enabled) -> SizeType {
+        return Sort(DEFAULT_GREATER_THAN, required, enabled);
     }
 
     auto operator[](SizeType n) -> decltype(auto) {

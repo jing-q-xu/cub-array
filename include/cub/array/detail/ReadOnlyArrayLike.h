@@ -123,6 +123,14 @@ namespace detail {
             return index ? &(*this)[*index] : nullptr;
         }
 
+        auto GetIndex(ObjectType const * p) const -> std::optional<SizeType> {
+            return (p == nullptr) ? std::nullopt : std::optional{p - &(*this)[0]};
+        }
+
+        auto Ref() -> decltype(auto) {
+            return (*const_cast<decltype(this) const>(this));
+        }
+
     public:
         template<typename OP, __oP_cHeCkEr>
         auto ForEach(OP &&op, std::size_t from = 0) -> void {
@@ -240,8 +248,7 @@ namespace detail {
 
         template<typename LESS, __lEsS_cHeCkEr>
         auto MinElem(LESS &&less, BitMap enabled, SizeType from = 0) -> ObjectType * {
-            return const_cast<ObjectType *>(const_cast<ReadOnlyArrayLike const *>(this)->MinElem(
-                    std::forward<LESS>(less), enabled, from));
+            return const_cast<ObjectType *>(Ref().MinElem(std::forward<LESS>(less), enabled, from));
         }
 
         auto MinElem(BitMap enabled, SizeType from = 0) const -> ObjectType const * {
@@ -254,8 +261,7 @@ namespace detail {
 
         template<typename LESS, __lEsS_cHeCkEr>
         auto MinElemIndex(LESS &&less, BitMap enabled, SizeType from = 0) const -> std::optional<SizeType> {
-            auto found = MinElem(std::forward<LESS>(less), enabled, from);
-            return (found == nullptr) ? std::nullopt : std::optional{found - &(*this)[0]};
+            return GetIndex(MinElem(std::forward<LESS>(less), enabled, from));
         }
 
         auto MinElemIndex(BitMap enabled, SizeType from = 0) const -> std::optional<SizeType> {
@@ -274,8 +280,7 @@ namespace detail {
 
         template<typename LESS, __lEsS_cHeCkEr>
         auto MinElemIndex(LESS &&less, SizeType from = 0) const -> std::optional<SizeType> {
-            auto found = MinElem(std::forward<LESS>(less), from);
-            return (found == nullptr) ? std::nullopt : std::optional{found - &(*this)[0]};
+            return GetIndex(MinElem(std::forward<LESS>(less), from));
         }
 
         auto MinElemIndex(SizeType from = 0) const -> std::optional<SizeType> {
@@ -287,16 +292,54 @@ namespace detail {
             return MinElem([&](auto &&l, auto r) { return less(r, l); }, from);
         }
 
+        auto MaxElem(SizeType from = 0) const -> ObjectType const * {
+            return MaxElem(DEFAULT_LESS_THAN, from);
+        }
+
         template<typename LESS, __lEsS_cHeCkEr>
         auto MaxElem(LESS &&less, SizeType from = 0) -> ObjectType * {
-            return const_cast<ObjectType *>(const_cast<ReadOnlyArrayLike const *>(this)->MaxElem(
+            return const_cast<ObjectType *>(const_cast<decltype(this) const>(this)->MaxElem(
                     std::forward<LESS>(less), from));
+        }
+
+        auto MaxElem(SizeType from = 0) -> ObjectType * {
+            return MaxElem(DEFAULT_LESS_THAN, from);
+        }
+
+        template<typename LESS, __lEsS_cHeCkEr>
+        auto MaxElem(LESS &&less, BitMap enabled, SizeType from = 0) const -> auto {
+            return MinElem([&](auto &&l, auto r) { return less(r, l); }, enabled, from);
+        }
+
+        template<typename LESS, __lEsS_cHeCkEr>
+        auto MaxElem(LESS &&less, BitMap enabled, SizeType from = 0) -> auto {
+            return MinElem([&](auto &&l, auto r) { return less(r, l); }, enabled, from);
+        }
+
+        auto MaxElem(BitMap enabled, SizeType from = 0) const -> auto {
+            return MaxElem(DEFAULT_LESS_THAN, enabled, from);
+        }
+
+        auto MaxElem(BitMap enabled, SizeType from = 0) -> auto {
+            return MaxElem(DEFAULT_LESS_THAN, enabled, from);
         }
 
         template<typename LESS, __lEsS_cHeCkEr>
         auto MaxElemIndex(LESS &&less, SizeType from = 0) const -> std::optional<SizeType> {
-            auto found = MaxElem(std::forward<LESS>(less), from);
-            return (found == nullptr) ? std::nullopt : std::optional{found - &(*this)[0]};
+            return GetIndex(MaxElem(std::forward<LESS>(less), from));
+        }
+
+        auto MaxElemIndex(SizeType from = 0) const -> std::optional<SizeType> {
+            return MaxElemIndex(DEFAULT_LESS_THAN, from);
+        }
+
+        template<typename LESS, __lEsS_cHeCkEr>
+        auto MaxElemIndex(LESS &&less, BitMap enabled, SizeType from = 0) const -> auto {
+            return GetIndex(MaxElem(std::forward<LESS>(less), enabled, from));
+        }
+
+        auto MaxElemIndex(BitMap enabled, SizeType from = 0) const -> auto {
+            return GetIndex(MaxElem(DEFAULT_LESS_THAN, enabled, from));
         }
     };
 }

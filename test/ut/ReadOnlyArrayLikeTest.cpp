@@ -318,5 +318,12 @@ SCENARIO("const Placement ReadOnlyArrayLike MinElem") {
 
         REQUIRE(result);
         REQUIRE(*result == 2);
+
+        result = array.MaxElemIndex([](auto&& l, auto&& r) {
+            return l < r;
+        }, enabled);
+
+        REQUIRE(result);
+        REQUIRE(*result == 4);
     }
 }
