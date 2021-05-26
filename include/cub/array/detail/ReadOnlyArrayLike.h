@@ -8,10 +8,10 @@
 #include <cub/array/detail/ObjectTrait.h>
 #include <cub/base/DeduceSizeType.h>
 #include <cub/base/SizeOfArray.h>
+#include <cub/base/BitSet.h>
 #include <cub/array/detail/LessChecker.h>
 #include <cstdint>
 #include <type_traits>
-#include <bitset>
 #include <optional>
 
 namespace detail {
@@ -31,7 +31,7 @@ namespace detail {
         static_assert(MAX_SIZE > 0);
 
         using SizeType = DeduceSizeType_t<MAX_SIZE>;
-        using BitMap = std::bitset<MAX_SIZE>;
+        using BitMap = BitSet<MAX_SIZE>;
 
     public:
         using DATA_HOLDER::DATA_HOLDER;

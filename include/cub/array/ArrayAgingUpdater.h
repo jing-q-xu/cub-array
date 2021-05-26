@@ -7,6 +7,7 @@
 
 #include <cub/array/ArraySortObject.h>
 #include <cub/array/ObjectArray.h>
+#include <cub/base/BitSet.h>
 
 template<typename POLICY>
 struct ArrayAgingUpdater {
@@ -40,7 +41,7 @@ private:
 
     auto TryAppend(FromArray const& from) -> void {
         UpdateFlag allUpdated{};
-        allUpdated.flip();
+        allUpdated.set();
 
         if(allUpdated == updateFlag) {
             return;
@@ -74,8 +75,8 @@ private:
         auto cnt = sorted.DescSort();
         auto rest = to.GetFreeNum();
 
-        std::bitset<ToArray::MAX_SIZE> removable = policy.GetRemovable();
-        std::bitset<ToArray::MAX_SIZE> removed;
+        BitSet<ToArray::MAX_SIZE> removable = policy.GetRemovable();
+        BitSet<ToArray::MAX_SIZE> removed;
 
         for(auto i=rest; i<cnt; i++) {
             if(removable.none()) break;
@@ -99,7 +100,7 @@ private:
 private:
     ToArray&         to;
     POLICY&          policy;
-    using UpdateFlag = std::bitset<FromArray::MAX_SIZE>;
+    using UpdateFlag = BitSet<FromArray::MAX_SIZE>;
     UpdateFlag updateFlag{};
 };
 

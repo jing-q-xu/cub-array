@@ -81,7 +81,8 @@ namespace {
 
         auto GetRemovable() const -> BitMap {
             BitMap map;
-            return map.flip();
+            map.set();
+            return map;
         }
 
         auto OnRemoved(BitMap) -> void {

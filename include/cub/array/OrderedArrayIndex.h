@@ -6,17 +6,17 @@
 #define CUB_ARRAY_ORDEREDARRAYINDEX_H
 
 #include <cub/base/DeduceSizeType.h>
+#include <cub/base/BitSet.h>
 #include <cub/array/detail/LessChecker.h>
 #include <cub/array/ValueArray.h>
 #include <cstdint>
 #include <algorithm>
-#include <bitset>
 
 template<typename ARRAY>
 struct OrderedArrayIndex {
     constexpr static auto MAX_SIZE = ARRAY::MAX_SIZE;
     using SizeType = DeduceSizeType_t<MAX_SIZE>;
-    using BitMap = std::bitset<MAX_SIZE>;
+    using BitMap = BitSet<MAX_SIZE>;
     using ObjectType = typename ARRAY::ObjectType;
 
     template<typename LESS, __lEsS_cHeCkEr>

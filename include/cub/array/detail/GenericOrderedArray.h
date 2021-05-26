@@ -13,7 +13,7 @@ namespace detail {
         using ARRAY = typename ARRAY_HOLDER::ArrayType;
         constexpr static auto MAX_SIZE = ARRAY::MAX_SIZE;
         using SizeType = DeduceSizeType_t<MAX_SIZE>;
-        using BitMap = std::bitset<MAX_SIZE>;
+        using BitMap = BitSet<MAX_SIZE>;
         using ObjectType = typename ARRAY::ObjectType;
         using Parent = ARRAY_HOLDER;
 
