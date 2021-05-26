@@ -75,7 +75,7 @@ public:
     }
 
 private:
-    template< typename OP>
+    template<typename OP, __oP_cHeCkEr>
     auto Visit(OP&& op, SizeType i) -> void {
         if constexpr (std::is_invocable_v<OP, ObjectType&, SizeType>) {
             op((*this)[i], i);
@@ -84,7 +84,7 @@ private:
         }
     }
 
-    template< typename OP>
+    template<typename OP, __oP_cHeCkEr>
     auto Visit(OP&& op, SizeType i) const -> void {
         if constexpr (std::is_invocable_v<OP, ObjectType const&, SizeType>) {
             op((*this)[i], i);
@@ -93,7 +93,7 @@ private:
         }
     }
 
-    template< typename PRED>
+    template<typename PRED, __pReD_cHeCkEr>
     auto Pred(PRED&& pred, SizeType i) const -> bool {
         if constexpr (std::is_invocable_r_v<bool, PRED, ObjectType const&, SizeType>) {
             return pred((*this)[i], i);
@@ -121,14 +121,14 @@ private:
     }
 
 public:
-    template< typename OP>
+    template<typename OP, __oP_cHeCkEr>
     auto ForEach(OP&& op, std::size_t from = 0) {
         for(auto i=from; i<Data::num; i++) {
             Visit(std::forward<OP>(op), i);
         }
     }
 
-    template< typename OP>
+    template<typename OP, __oP_cHeCkEr>
     auto ForEach(OP&& op, BitMap enabled, std::size_t from = 0)
     {
         for(auto i=from; i<Data::num; i++) {
@@ -138,14 +138,14 @@ public:
         }
     }
 
-    template< typename OP>
+    template<typename OP, __oP_cHeCkEr>
     auto ForEach(OP&& op, std::size_t from = 0) const {
         for(auto i=from; i<Data::num; i++) {
             Visit(std::forward<OP>(op), i);
         }
     }
 
-    template< typename OP>
+    template<typename OP, __oP_cHeCkEr>
     auto ForEach(OP&& op, BitMap enabled, std::size_t from = 0) const {
         for(auto i=from; i<Data::num; i++) {
             if(enabled.test(i)) {
@@ -154,7 +154,7 @@ public:
         }
     }
 
-    template<typename PRED>
+    template<typename PRED, __pReD_cHeCkEr>
     auto FindIndex(PRED&& pred, std::size_t from = 0) const -> std::optional<SizeType>
     {
         for(auto i=from; i<Data::num; i++) {
@@ -165,24 +165,24 @@ public:
         return std::nullopt;
     }
 
-    template<typename PRED>
+    template<typename PRED, __pReD_cHeCkEr>
     auto Find(PRED&& pred, SizeType from = 0) const -> ObjectType const*
     {
         return GetObj(FindIndex(pred, from));
     }
 
-    template<typename PRED>
+    template<typename PRED, __pReD_cHeCkEr>
     auto Find(PRED&& pred, SizeType from = 0) -> ObjectType*
     {
         return const_cast<ObjectType*>(GetObj(FindIndex(pred, from)));
     }
 
-    template<typename PRED>
+    template<typename PRED, __pReD_cHeCkEr>
     auto Exists(PRED&& pred, SizeType from = 0) const -> bool {
         return Find(std::forward<PRED>(pred), from) != nullptr;
     }
 
-    template<typename PRED>
+    template<typename PRED, __pReD_cHeCkEr>
     auto FindIndex(PRED&& pred, BitMap enabled, SizeType from = 0) const -> std::optional<SizeType>
     {
         from = std::min(from, Data::num);
@@ -199,18 +199,18 @@ public:
         return std::nullopt;
     }
 
-    template<typename PRED>
+    template<typename PRED, __pReD_cHeCkEr>
     auto Find(PRED&& pred, BitMap enabled, SizeType from = 0) const -> ObjectType const*
     {
         return GetObj(FindIndex(pred, enabled, from));
     }
 
-    template<typename PRED>
+    template<typename PRED, __pReD_cHeCkEr>
     auto Exists(PRED&& pred, BitMap enabled, SizeType from = 0) const -> bool {
         return Find(std::forward<PRED>(pred), enabled, from) != nullptr;
     }
 
-    template<typename PRED>
+    template<typename PRED, __pReD_cHeCkEr>
     auto Find(PRED&& pred, BitMap enabled, SizeType from = 0) -> ObjectType*
     {
         return const_cast<ObjectType*>(GetObj(FindIndex(pred, enabled, from)));
