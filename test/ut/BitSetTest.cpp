@@ -78,3 +78,11 @@ SCENARIO("BitSet set/reset") {
     bs.set(1, false);
     REQUIRE(bs == BitSet<7>{0});
 }
+
+SCENARIO("BitSet bi-op") {
+    REQUIRE((BitSet<7>(0x2) | BitSet<7>(0x01)) == BitSet<7>(0x03));
+    REQUIRE((BitSet<7>(0x2) & BitSet<7>(0x03)) == BitSet<7>(0x02));
+    REQUIRE(~BitSet<7>(0x2) == BitSet<7>{0x7D});
+
+    REQUIRE((BitSet<7>{} ^ BitSet<7>{}) == BitSet<7>{});
+};

@@ -39,41 +39,41 @@ public:
     constexpr BitSet() = default;
     constexpr explicit BitSet(IntType integral) : integral(MASK & integral) {}
 
-    auto operator==(BitSet const& rhs) const -> bool {
+    constexpr auto operator==(BitSet const& rhs) const -> bool {
         return integral == rhs.integral;
     }
 
-    auto operator!=(BitSet const& rhs) const -> bool {
+    constexpr auto operator!=(BitSet const& rhs) const -> bool {
         return integral != rhs.integral;
     }
 
-    auto test(std::size_t pos) const -> bool {
+    constexpr auto test(std::size_t pos) const -> bool {
         return (integral & (1ULL << pos)) > 0;
     }
 
-    auto operator[](std::size_t pos) const -> bool {
+    constexpr auto operator[](std::size_t pos) const -> bool {
         return test(pos);
     }
 
-    auto all() const -> bool {
+    constexpr auto all() const -> bool {
         return (integral & MASK) == MASK;
     }
 
-    auto any() const -> bool {
+    constexpr auto any() const -> bool {
         return integral > 0;
     }
 
-    auto none() const -> bool {
+    constexpr auto none() const -> bool {
         return integral == 0;
     }
 
-    auto count() const -> std::size_t {
+    constexpr auto count() const -> std::size_t {
         std::size_t c = 0;
         for(auto n = integral; n; n &= (n - 1), c++);
         return c;
     }
 
-    auto size() const -> std::size_t {
+    constexpr auto size() const -> std::size_t {
         return N;
     }
 
@@ -135,20 +135,20 @@ public:
         return *this;
     }
 
-    auto operator~() const -> BitSet {
-        return BitSet{~integral};
+    constexpr auto operator~() const -> BitSet {
+        return BitSet(~integral);
     }
 
-    friend auto operator&(BitSet const& lhs, BitSet const rhs) -> BitSet {
-        return BitSet{lhs.integral & rhs.integral};
+    friend constexpr auto operator&(BitSet const& lhs, BitSet const rhs) -> BitSet {
+        return BitSet(lhs.integral & rhs.integral);
     }
 
-    friend auto operator|(BitSet const& lhs, BitSet const rhs) -> BitSet {
-        return BitSet{lhs.integral | rhs.integral};
+    friend constexpr auto operator|(BitSet const& lhs, BitSet const rhs) -> BitSet {
+        return BitSet(lhs.integral | rhs.integral);
     }
 
-    friend auto operator^(BitSet const& lhs, BitSet const rhs) -> BitSet {
-        return BitSet{lhs.integral ^ rhs.integral};
+    friend constexpr auto operator^(BitSet const& lhs, BitSet const rhs) -> BitSet {
+        return BitSet(lhs.integral ^ rhs.integral);
     }
 
 private:
