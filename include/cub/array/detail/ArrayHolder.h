@@ -18,32 +18,23 @@ namespace detail {
 
         ArrayHolder() = default;
         ArrayHolder(ArrayHolder const& rhs) : num{rhs.num} {
-            for(int i=0; i<num; i++) {
-                Trait::Emplace(objs[i], Trait::ToObject(rhs.objs[i]));
-            }
+            CopyFrom(rhs);
         }
 
         ArrayHolder(ArrayHolder&& rhs) : num{rhs.num} {
-            for(int i=0; i<num; i++) {
-                Trait::Emplace(objs[i], std::move(Trait::ToObject(rhs.objs[i])));
-            }
-            rhs.Clear();
+            MoveFrom(std::move(rhs));
         }
 
         auto operator=(ArrayHolder const& rhs) -> ArrayHolder& {
             Clear();
             num = rhs.num;
-            for(int i=0; i<num; i++) {
-                ObjectTrait<OBJ>::Emplace(objs[i], Trait::ToObject(rhs.objs[i]));
-            }
+            CopyFrom(rhs);
         }
 
         auto operator=(ArrayHolder&& rhs) -> ArrayHolder& {
             Clear();
             num = rhs.num;
-            for(int i=0; i<num; i++) {
-                Trait::Emplace(objs[i], std::move(Trait::ToObject(rhs.objs[i])));
-            }
+            MoveFrom(std::move(rhs));
         }
 
         ~ArrayHolder() {
@@ -56,6 +47,20 @@ namespace detail {
                 Trait::Destroy(objs[i]);
             }
             num = 0;
+        }
+
+        auto MoveFrom(ArrayHolder&& rhs) {
+            for(int i=0; i<num; i++) {
+                Trait::Emplace(objs[i], std::move(Trait::ToObject(rhs.objs[i])));
+            }
+
+            rhs.Clear();
+        }
+
+        auto CopyFrom(ArrayHolder const& rhs) {
+            for(int i=0; i<num; i++) {
+                ObjectTrait<OBJ>::Emplace(objs[i], Trait::ToObject(rhs.objs[i]));
+            }
         }
 
     public:
