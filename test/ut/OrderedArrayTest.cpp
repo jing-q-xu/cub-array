@@ -65,6 +65,8 @@ SCENARIO("OrderedArray") {
 
     bitmap.set(1);
 
+    bitmap.count();
+
     REQUIRE(3 == array.Sort(bitmap));
     REQUIRE(array[0] == 2);
     REQUIRE(array[1] == 7);
@@ -74,4 +76,6 @@ SCENARIO("OrderedArray") {
     REQUIRE(array[0] == 10);
     REQUIRE(array[1] == 7);
     REQUIRE(array[2] == 2);
+
+
 }
