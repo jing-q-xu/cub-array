@@ -5,7 +5,11 @@
 #ifndef CUB_ARRAY_ORDEREDARRAYINDEX_H
 #define CUB_ARRAY_ORDEREDARRAYINDEX_H
 
+#include <cub/base/DeduceSizeType.h>
+#include <cub/array/detail/LessChecker.h>
 #include <cstdint>
+#include <algorithm>
+#include <bitset>
 
 template<typename ARRAY>
 struct OrderedArrayIndex {

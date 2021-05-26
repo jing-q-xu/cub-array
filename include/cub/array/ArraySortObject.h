@@ -5,71 +5,32 @@
 #ifndef CUB_ARRAY_ARRAYSORTOBJECT_H
 #define CUB_ARRAY_ARRAYSORTOBJECT_H
 
-#include <cub/base/DeduceSizeType.h>
-#include <cub/array/detail/LessChecker.h>
-#include <algorithm>
-#include <bitset>
-#include "OrderedArrayIndex.h"
+#include <cub/array/detail/GenericOrderedArray.h>
+
+namespace detail {
+    template<typename ARRAY>
+    struct ArraySortObjectTrait {
+    private:
+        struct Holder {
+            using ArrayType = ARRAY;
+
+            Holder(ARRAY& array) : array{array} {}
+
+            ARRAY& array;
+        };
+
+    public:
+        using Type = detail::GenericOrderedArray<Holder>;
+    };
+}
 
 template<typename ARRAY>
-struct ArraySortObject {
-    constexpr static auto MAX_SIZE = ARRAY::MAX_SIZE;
-    using SizeType = DeduceSizeType_t<MAX_SIZE>;
-    using BitMap = std::bitset<MAX_SIZE>;
-    using ObjectType = typename ARRAY::ObjectType;
-
-    ArraySortObject(ARRAY& array) : array{array} {}
-
-    template<typename LESS, __lEsS_cHeCkEr>
-    auto Sort(LESS&& less) -> SizeType {
-        return indices.Sort(array, std::forward<LESS>(less));
-    }
-
-    auto Sort() -> SizeType {
-        return indices.Sort(array);
-    }
-
-    auto DescSort() -> SizeType {
-        return indices.DescSort(array);
-    }
-
-    template<typename LESS, __lEsS_cHeCkEr>
-    auto Sort(SizeType required, LESS&& less) -> SizeType {
-        return indices.Sort(array, required, std::forward<LESS>(less));
-    }
-
-    auto Sort(SizeType required) -> SizeType {
-        return indices.Sort(array, required);
-    }
-
-    auto DescSort(SizeType required) -> SizeType {
-        return indices.DescSort(array, required);
-    }
-
-    template<typename LESS, __lEsS_cHeCkEr>
-    auto Sort(SizeType required, BitMap enabled, LESS&& less) -> SizeType {
-        return indices.Sort(array, required, enabled, std::forward<LESS>(less));
-    }
-
-    auto Sort(SizeType required, BitMap enabled) -> SizeType {
-        return indices.Sort(array, required, enabled);
-    }
-
-    auto DescSort(SizeType required, BitMap enabled) -> SizeType {
-        return indices.DescSort(array, required, enabled);
-    }
-
-    auto operator[](SizeType n) -> decltype(auto) {
-        return (array[indices[n]]);
-    }
-
-    auto operator[](SizeType n) const -> decltype(auto) {
-        return (array[indices[n]]);
-    }
-
-private:
-    ARRAY& array;
-    OrderedArrayIndex<ARRAY> indices;
+struct ArraySortObject : detail::ArraySortObjectTrait<ARRAY>::Type {
+    using Parent = typename detail::ArraySortObjectTrait<ARRAY>::Type;
+    using Parent::Parent;
 };
+
+template<typename ARRAY>
+ArraySortObject(ARRAY&) -> ArraySortObject<ARRAY>;
 
 #endif //CUB_ARRAY_ARRAYSORTOBJECT_H
