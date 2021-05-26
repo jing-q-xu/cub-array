@@ -29,11 +29,26 @@ public:
     static_assert(MAX_SIZE > 0);
 
     using SizeType   = DeduceSizeType_t<MAX_SIZE>;
-
     using BitMap = std::bitset<MAX_SIZE>;
 
 public:
     using DATA_HOLDER::DATA_HOLDER;
+
+    auto operator==(ReadOnlyArrayLike const& rhs) const -> bool {
+        if(Data::num != rhs.GetNum()) return false;
+
+        for(auto i=0; i<Data::num; i++) {
+            if(!rhs.Exists([&mine = (*this)[i]](auto&& elem) { return mine == elem; })) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    auto operator!=(ReadOnlyArrayLike const& rhs) const -> bool {
+        return !operator==(rhs);
+    }
 
     auto GetNum() const -> SizeType {
         return Data::num;
@@ -163,6 +178,11 @@ public:
     }
 
     template<typename PRED>
+    auto Exists(PRED&& pred, SizeType from = 0) const -> bool {
+        return Find(std::forward<PRED>(pred), from) != nullptr;
+    }
+
+    template<typename PRED>
     auto FindIndex(PRED&& pred, BitMap enabled, SizeType from = 0) const -> std::optional<SizeType>
     {
         from = std::min(from, Data::num);
@@ -183,6 +203,11 @@ public:
     auto Find(PRED&& pred, BitMap enabled, SizeType from = 0) const -> ObjectType const*
     {
         return GetObj(FindIndex(pred, enabled, from));
+    }
+
+    template<typename PRED>
+    auto Exists(PRED&& pred, BitMap enabled, SizeType from = 0) const -> bool {
+        return Find(std::forward<PRED>(pred), enabled, from) != nullptr;
     }
 
     template<typename PRED>
