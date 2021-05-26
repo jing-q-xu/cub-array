@@ -16,13 +16,16 @@ namespace detail {
         using SizeType = DeduceSizeType_t<MAX_NUM>;
         using Trait = ObjectTrait<OBJ>;
 
+        static_assert(sizeof(T) == sizeof(OBJ));
+        static_assert(alignof(T) == alignof(OBJ));
+        
     private:
-        static constexpr auto COULD_COPY = std::is_trivially_copyable_v<OBJ> &&
-                           std::is_trivially_copy_assignable_v<OBJ> &&
-                           std::is_trivially_copy_constructible_v<OBJ>;
+        static constexpr auto COULD_COPY = std::is_trivially_copyable_v<T> &&
+                           std::is_trivially_copy_assignable_v<T> &&
+                           std::is_trivially_copy_constructible_v<T>;
 
         auto Clear() -> void {
-            if constexpr (!std::is_trivially_destructible_v<OBJ>) {
+            if constexpr (!std::is_trivially_destructible_v<T>) {
                 for(int i=0; i<num; i++) Trait::Destroy(objs[i]);
             }
             num = 0;
@@ -55,7 +58,7 @@ namespace detail {
         }
 
         auto MoveFrom(ArrayHolder&& rhs) {
-            if constexpr (std::is_trivially_move_assignable_v<OBJ> && std::is_trivially_move_constructible_v<OBJ> && COULD_COPY) {
+            if constexpr (std::is_trivially_move_assignable_v<T> && std::is_trivially_move_constructible_v<T> && COULD_COPY) {
                 ::memcpy(objs, rhs.objs, sizeof(OBJ) * num);
             } else {
                 for(int i=0; i<num; i++) {
@@ -68,7 +71,7 @@ namespace detail {
 
         auto CopyFrom(ArrayHolder const& rhs) {
             if constexpr (COULD_COPY) {
-                ::memcpy(objs, rhs.objs, sizeof(OBJ) * num);
+                ::memcpy(objs, rhs.objs, sizeof(T) * num);
             } else {
                 for(int i=0; i<num; i++) {
                     ObjectTrait<OBJ>::Emplace(objs[i], Trait::ToObject(rhs.objs[i]));
