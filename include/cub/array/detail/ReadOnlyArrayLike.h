@@ -298,8 +298,7 @@ namespace detail {
 
         template<typename LESS, __lEsS_cHeCkEr>
         auto MaxElem(LESS &&less, SizeType from = 0) -> ObjectType * {
-            return const_cast<ObjectType *>(const_cast<decltype(this) const>(this)->MaxElem(
-                    std::forward<LESS>(less), from));
+            return const_cast<ObjectType *>(Ref().MaxElem(std::forward<LESS>(less), from));
         }
 
         auto MaxElem(SizeType from = 0) -> ObjectType * {
@@ -311,13 +310,13 @@ namespace detail {
             return MinElem([&](auto &&l, auto r) { return less(r, l); }, enabled, from);
         }
 
+        auto MaxElem(BitMap enabled, SizeType from = 0) const -> auto {
+            return MaxElem(DEFAULT_LESS_THAN, enabled, from);
+        }
+
         template<typename LESS, __lEsS_cHeCkEr>
         auto MaxElem(LESS &&less, BitMap enabled, SizeType from = 0) -> auto {
             return MinElem([&](auto &&l, auto r) { return less(r, l); }, enabled, from);
-        }
-
-        auto MaxElem(BitMap enabled, SizeType from = 0) const -> auto {
-            return MaxElem(DEFAULT_LESS_THAN, enabled, from);
         }
 
         auto MaxElem(BitMap enabled, SizeType from = 0) -> auto {
@@ -339,7 +338,7 @@ namespace detail {
         }
 
         auto MaxElemIndex(BitMap enabled, SizeType from = 0) const -> auto {
-            return GetIndex(MaxElem(DEFAULT_LESS_THAN, enabled, from));
+            return MaxElemIndex(DEFAULT_LESS_THAN, enabled, from);
         }
     };
 }

@@ -295,7 +295,7 @@ SCENARIO("const ReadOnlyArrayLike Find") {
 }
 
 SCENARIO("const Placement ReadOnlyArrayLike MinElem") {
-    const PlacementArray array = {2, 4, 3, 1, 8};
+    const PlacementArray array = {2, 4, 3, 1, 8, 7};
 
     {
         auto result = array.MinElemIndex([](auto&& l, auto&& r) {
@@ -304,6 +304,13 @@ SCENARIO("const Placement ReadOnlyArrayLike MinElem") {
 
         REQUIRE(result);
         REQUIRE(*result == 3);
+
+        result = array.MaxElemIndex([](auto&& l, auto&& r) {
+            return l < r;
+        });
+
+        REQUIRE(result);
+        REQUIRE(*result == 4);
     }
 
     {
