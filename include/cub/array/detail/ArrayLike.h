@@ -22,6 +22,7 @@ public:
 public:
     using Parent::Parent;
 
+
     template<typename ... ARGS>
     auto Append(ARGS&& ... args) -> ObjectType* {
         if(Data::num >= MAX_SIZE) return nullptr;

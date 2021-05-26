@@ -32,4 +32,10 @@ SCENARIO("ObjectArray") {
         REQUIRE(array.IsEmpty());
     }
 
+    WHEN("copy") {
+        auto array2 = std::move(array);
+        REQUIRE(array2.GetNum() == 1);
+        REQUIRE(array.GetNum() == 0);
+    }
+
 }
