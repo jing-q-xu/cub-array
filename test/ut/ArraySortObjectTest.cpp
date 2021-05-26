@@ -23,9 +23,7 @@ SCENARIO("ArraySortObject") {
 
     ArraySortObject sortObject{array};
 
-    auto cnt = sortObject.Sort([](auto&& l, auto&& r) {
-       return l < r;
-    });
+    auto cnt = sortObject.Sort();
 
     REQUIRE(cnt == 3);
 }

@@ -81,6 +81,7 @@ private:
             if(removable.none()) break;
             auto elemIndex = to.MinElemIndex(removable);
             if(!elemIndex) break;
+            if(policy.Less(sorted[i], to[*elemIndex])) break;
             removable.reset(*elemIndex);
             removed.set(*elemIndex);
             policy.Replace(to, *elemIndex, sorted[i]);

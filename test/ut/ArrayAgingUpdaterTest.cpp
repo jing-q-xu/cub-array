@@ -47,6 +47,10 @@ namespace {
             return phy.id == local.id;
         }
 
+        auto Less(TempObject const& temp, Local const& local) const -> bool {
+            return temp.value < local.value;
+        }
+
         auto OnFound(Local& local, Phy const& phy) -> void {
             local.value += phy.value;
         }
@@ -90,15 +94,19 @@ SCENARIO("ArrayAgingUpdater") {
 
     ObjectArray<Local, 6> array;
     Policy policy;
-    ArrayAgingUpdater updater{array,  policy};
+    ArrayAgingUpdater update{array,  policy};
 
     {
         Ind ind{{{1, 2},{2,3},{3,4}, {4, 5}, {5, 6}}, 5};
-        updater(ArrayView{ind.a, ind.num});
+        update(ArrayView{ind.a, ind.num});
+        REQUIRE(array.GetNum() == 5);
+        REQUIRE(array[0].value == 2);
+        REQUIRE(array[0].id == 1);
     }
 
     {
         Ind ind{{{1, 2},{2,3},{7,4}, {8, 5}, {9, 10}}, 5};
-        updater(ArrayView{ind.a, ind.num});
+        update(ArrayView{ind.a, ind.num});
+        REQUIRE(array.GetNum() == 6);
     }
 }
