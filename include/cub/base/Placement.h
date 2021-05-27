@@ -5,6 +5,7 @@
 #ifndef CUB_ARRAY_PLACEMENT_H
 #define CUB_ARRAY_PLACEMENT_H
 
+#include <cub/base/detail/UnionTrait.h>
 #include <utility>
 #include <new>
 
@@ -16,9 +17,9 @@ struct Placement
     template<typename ... ARGS>
     auto Emplace(ARGS&& ... args) -> T* {
         if constexpr (std::is_aggregate_v<T>) {
-            return new (obj) T{ std::forward<ARGS>(args)... };
+            return new (&obj) T{ std::forward<ARGS>(args)... };
         } else {
-            return new (obj) T( std::forward<ARGS>(args)... );
+            return new (&obj) T( std::forward<ARGS>(args)... );
         }
     }
 
@@ -35,11 +36,11 @@ struct Placement
     }
 
     auto GetObject() const -> T const* {
-        return reinterpret_cast<T const*>(obj);
+        return reinterpret_cast<T const*>(&obj);
     }
 
     auto GetObject() -> T* {
-        return reinterpret_cast<T*>(obj);
+        return reinterpret_cast<T*>(&obj);
     }
 
     auto operator->() -> T* {
@@ -59,7 +60,8 @@ struct Placement
     }
 
 private:
-    alignas(alignof(T)) char obj[sizeof(T)];
+    using Storage = typename detail::UnionTrait<T>::Type;
+    Storage obj;
 };
 
 #endif //CUB_ARRAY_PLACEMENT_H

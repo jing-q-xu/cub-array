@@ -5,6 +5,7 @@
 #include <cub/array/ObjectArray.h>
 #include <catch.hpp>
 
+
 SCENARIO("ObjectArray") {
     ObjectArray<int, 10> array;
 

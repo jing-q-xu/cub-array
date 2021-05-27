@@ -29,6 +29,7 @@ SCENARIO("Placement") {
     Placement<Foo> obj;
 
     static_assert(alignof(Placement<Foo>) == alignof(Foo));
+    static_assert(!std::is_trivially_copyable_v<Placement<Foo>>);
 
     REQUIRE(!cons);
 

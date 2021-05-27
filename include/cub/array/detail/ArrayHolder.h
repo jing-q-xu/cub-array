@@ -18,16 +18,21 @@ namespace detail {
 
         static_assert(sizeof(T) == sizeof(OBJ));
         static_assert(alignof(T) == alignof(OBJ));
-        
+
     private:
         static constexpr auto COULD_COPY = std::is_trivially_copyable_v<T> &&
                            std::is_trivially_copy_assignable_v<T> &&
                            std::is_trivially_copy_constructible_v<T>;
 
-        auto Clear() -> void {
+        auto ClearContent() -> void {
             if constexpr (!std::is_trivially_destructible_v<T>) {
                 for(int i=0; i<num; i++) Trait::Destroy(objs[i]);
             }
+
+        }
+
+        auto Clear() -> void {
+            ClearContent();
             num = 0;
         }
 
@@ -54,7 +59,7 @@ namespace detail {
         }
 
         ~ArrayHolder() {
-            Clear();
+            ClearContent();
         }
 
         auto MoveFrom(ArrayHolder&& rhs) {
