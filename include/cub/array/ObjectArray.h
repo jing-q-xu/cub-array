@@ -10,6 +10,6 @@
 #include <cub/array/detail/ArrayLike.h>
 
 template<typename T, std::size_t MAX_NUM>
-using ObjectArray = detail::ArrayLike<detail::ArrayHolder<T, MAX_NUM, Placement<T>>>;
+using ObjectArray = detail::ArrayLike<typename detail::ArrayHolderTrait<T>::template Type<MAX_NUM, Placement<T>>>;
 
 #endif //CUB_ARRAY_OBJECTARRAY_H

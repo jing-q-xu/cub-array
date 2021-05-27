@@ -10,6 +10,6 @@
 #include <cub/array/detail/ArrayLike.h>
 
 template<typename T, std::size_t MAX_NUM>
-using ValueArray = detail::ArrayLike<detail::ArrayHolder<T, MAX_NUM>>;
+using ValueArray = detail::ArrayLike<typename detail::ArrayHolderTrait<T>::template Type<MAX_NUM>>;
 
 #endif //CUB_ARRAY_VALUEARRAY_H

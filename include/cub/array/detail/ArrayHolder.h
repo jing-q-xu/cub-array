@@ -19,7 +19,7 @@ namespace detail {
         static_assert(sizeof(T) == sizeof(OBJ));
         static_assert(alignof(T) == alignof(OBJ));
 
-    private:
+    protected:
         static constexpr auto COULD_COPY = std::is_trivially_copyable_v<T> &&
                            std::is_trivially_copy_assignable_v<T> &&
                            std::is_trivially_copy_constructible_v<T>;
@@ -28,7 +28,6 @@ namespace detail {
             if constexpr (!std::is_trivially_destructible_v<T>) {
                 for(int i=0; i<num; i++) Trait::Destroy(objs[i]);
             }
-
         }
 
         auto Clear() -> void {
@@ -58,9 +57,7 @@ namespace detail {
             MoveFrom(std::move(rhs));
         }
 
-        ~ArrayHolder() {
-            ClearContent();
-        }
+
 
         auto MoveFrom(ArrayHolder&& rhs) {
             if constexpr (std::is_trivially_move_assignable_v<T> && std::is_trivially_move_constructible_v<T> && COULD_COPY) {
@@ -87,6 +84,28 @@ namespace detail {
     public:
         OBJ objs[MAX_SIZE];
         SizeType num{};
+    };
+
+    template<typename T, typename = void >
+    struct ArrayHolderTrait {
+        template<std::size_t MAX_NUM, typename OBJ = T>
+        struct Type : ArrayHolder<T, MAX_NUM, OBJ> {
+            using Parent = ArrayHolder<T, MAX_NUM, OBJ>;
+            using Parent::Parent;
+
+            ~Type() {
+                Parent::ClearContent();
+            }
+        };
+    };
+
+    template<typename T>
+    struct ArrayHolderTrait<T, std::enable_if_t<std::is_trivially_destructible_v<T>>> {
+        template<std::size_t MAX_NUM, typename OBJ = T>
+        struct Type : ArrayHolder<T, MAX_NUM, OBJ> {
+            using Parent = ArrayHolder<T, MAX_NUM, OBJ>;
+            using Parent::Parent;
+        };
     };
 }
 

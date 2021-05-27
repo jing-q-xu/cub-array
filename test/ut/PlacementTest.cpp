@@ -23,13 +23,15 @@ namespace {
             cons = false;
         }
     };
+
+    static_assert(!std::is_trivially_copyable_v<Placement<Foo>>);
+    static_assert(std::is_trivially_copyable_v<Placement<int>>);
 }
 
 SCENARIO("Placement") {
     Placement<Foo> obj;
 
     static_assert(alignof(Placement<Foo>) == alignof(Foo));
-    static_assert(!std::is_trivially_copyable_v<Placement<Foo>>);
 
     REQUIRE(!cons);
 

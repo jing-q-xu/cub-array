@@ -9,6 +9,8 @@
 SCENARIO("ObjectArray") {
     ObjectArray<int, 10> array;
 
+    static_assert(std::is_trivially_destructible_v<ObjectArray<int, 10>>);
+
     REQUIRE(array.GetNum() == 0);
     REQUIRE(array.IsEmpty());
     array.Append(1);
@@ -39,4 +41,13 @@ SCENARIO("ObjectArray") {
         REQUIRE(array.GetNum() == 0);
     }
 
+}
+
+namespace {
+    struct Foo {
+        int a;
+        ~Foo() {}
+    };
+
+    static_assert(!std::is_trivially_destructible_v<ObjectArray<Foo, 10>>);
 }
