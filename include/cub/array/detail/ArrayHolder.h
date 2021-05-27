@@ -20,9 +20,7 @@ namespace detail {
         static_assert(alignof(T) == alignof(OBJ));
 
     protected:
-        static constexpr auto COULD_COPY = std::is_trivially_copyable_v<T> &&
-                           std::is_trivially_copy_assignable_v<T> &&
-                           std::is_trivially_copy_constructible_v<T>;
+        static constexpr auto COPIABLE = std::is_trivially_copyable_v<T> && std::is_trivially_copy_constructible_v<T>;
 
         auto ClearContent() -> void {
             if constexpr (!std::is_trivially_destructible_v<T>) {
@@ -57,10 +55,8 @@ namespace detail {
             MoveFrom(std::move(rhs));
         }
 
-
-
         auto MoveFrom(ArrayHolder&& rhs) {
-            if constexpr (std::is_trivially_move_assignable_v<T> && std::is_trivially_move_constructible_v<T> && COULD_COPY) {
+            if constexpr (std::is_trivially_move_constructible_v<T> && COPIABLE) {
                 ::memcpy(objs, rhs.objs, sizeof(OBJ) * num);
             } else {
                 for(int i=0; i<num; i++) {
@@ -72,7 +68,7 @@ namespace detail {
         }
 
         auto CopyFrom(ArrayHolder const& rhs) {
-            if constexpr (COULD_COPY) {
+            if constexpr (COPIABLE) {
                 ::memcpy(objs, rhs.objs, sizeof(T) * num);
             } else {
                 for(int i=0; i<num; i++) {
