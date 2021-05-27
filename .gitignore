@@ -2,8 +2,9 @@
 *.d
 
 cmake-build-debug/*
-.idea/*
 cmake-build-debug-coverage/*
+cmake-build-release/*
+.idea/*
 
 # Compiled Object files
 *.slo
