@@ -8,7 +8,7 @@
 #include <cub/base/DeduceSizeType.h>
 #include <cub/base/BitSet.h>
 #include <cub/array/detail/PredChecker.h>
-#include <cub/array/ValueArray.h>
+#include <cub/array/ObjectArray.h>
 #include <cstdint>
 #include <algorithm>
 
@@ -119,7 +119,7 @@ private:
     }
 
 private:
-    ValueArray<SizeType, MAX_SIZE> indices;
+    ObjectArray<SizeType, MAX_SIZE> indices;
 };
 
 #endif //CUB_ARRAY_ORDEREDARRAYINDEX_H

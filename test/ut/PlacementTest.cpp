@@ -26,6 +26,12 @@ namespace {
 
     static_assert(!std::is_trivially_copyable_v<Placement<Foo>>);
     static_assert(std::is_trivially_copyable_v<Placement<int>>);
+
+    struct Bar {
+        int a;
+    };
+
+    static_assert(std::is_trivially_constructible_v<Bar>);
 }
 
 SCENARIO("Placement") {
