@@ -43,6 +43,14 @@ struct Placement
         return reinterpret_cast<T*>(&obj);
     }
 
+    auto GetRef() const -> T const& {
+        return *GetObject();
+    }
+
+    auto GetRef() -> T& {
+        return *GetObject();
+    }
+
     auto operator->() -> T* {
         return GetObject();
     }
