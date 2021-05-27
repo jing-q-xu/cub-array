@@ -48,7 +48,7 @@ public:
 
     constexpr auto count() const -> std::size_t {
         std::size_t c = 0;
-        for(auto n = integral; n; n &= (n - 1), c++);
+        for(auto n = integral; n; n &= (n - 1)) c++;
         return c;
     }
 
