@@ -40,7 +40,7 @@ namespace detail {
             if (Data::num != rhs.GetNum()) return false;
 
             for (auto i = 0; i < Data::num; i++) {
-                if (!rhs.Exists([&mine = (*this)[i]](auto &&elem) { return mine == elem; })) {
+                if(!rhs.template Exists([&mine = (*this)[i]](auto &&elem) { return mine == elem; })) {
                     return false;
                 }
             }
@@ -142,7 +142,7 @@ namespace detail {
         template<typename OP, __oP_cHeCkEr>
         auto ForEach(OP &&op, BitMap enabled, std::size_t from = 0) -> void {
             for (auto i = from; i < Data::num; i++) {
-                if (enabled.test(i)) {
+                if (enabled[i]) {
                     Visit(std::forward<OP>(op), i);
                 }
             }
@@ -156,9 +156,9 @@ namespace detail {
         }
 
         template<typename OP, __oP_cHeCkEr>
-        auto ForEach(OP &&op, BitMap enabled, std::size_t from = 0) const -> void {
+        auto ForEach(OP &&op, BitMap scope, std::size_t from = 0) const -> void {
             for (auto i = from; i < Data::num; i++) {
-                if (enabled.test(i)) {
+                if (scope[i]) {
                     Visit(std::forward<OP>(op), i);
                 }
             }
@@ -172,6 +172,16 @@ namespace detail {
                 }
             }
             return std::nullopt;
+        }
+
+        template<typename PRED, __pReD_cHeCkEr>
+        auto Find(PRED &&pred, BitMap scope, SizeType from = 0) const -> auto {
+            return GetObj(FindIndex(pred, scope, from));
+        }
+
+        template<typename PRED, __pReD_cHeCkEr>
+        auto Find(PRED &&pred, BitMap scope, SizeType from = 0) -> auto {
+            return const_cast<ObjectType *>(GetObj(FindIndex(pred, scope, from)));
         }
 
         template<typename PRED, __pReD_cHeCkEr>
@@ -195,29 +205,30 @@ namespace detail {
             auto remain = from == 0 ? enabled : GetRemain(enabled, from);
             for (auto i = from; i < Data::num; i++) {
                 if (remain.none()) break;
-
-                if (remain.test(i) && Pred(std::forward<PRED>(pred), i)) {
+                if(!remain[i]) continue;
+                if (Pred(std::forward<PRED>(pred), i)) {
                     return i;
                 }
-
                 remain.reset(i);
             }
+
             return std::nullopt;
         }
 
         template<typename PRED, __pReD_cHeCkEr>
-        auto Find(PRED &&pred, BitMap enabled, SizeType from = 0) const -> auto {
-            return GetObj(FindIndex(pred, enabled, from));
+        auto FindIndexEx(PRED &&pred, BitMap disabled, SizeType from = 0) const -> std::optional<SizeType> {
+            for (auto i = from; i < Data::num; i++) {
+                if (!disabled[i] && Pred(std::forward<PRED>(pred), i)) {
+                    return i;
+                }
+            }
+
+            return std::nullopt;
         }
 
         template<typename PRED, __pReD_cHeCkEr>
         auto Exists(PRED &&pred, BitMap enabled, SizeType from = 0) const -> bool {
             return Find(std::forward<PRED>(pred), enabled, from) != nullptr;
-        }
-
-        template<typename PRED, __pReD_cHeCkEr>
-        auto Find(PRED &&pred, BitMap enabled, SizeType from = 0) -> ObjectType * {
-            return const_cast<ObjectType *>(GetObj(FindIndex(pred, enabled, from)));
         }
 
         template<typename LESS, __lEsS_cHeCkEr>
