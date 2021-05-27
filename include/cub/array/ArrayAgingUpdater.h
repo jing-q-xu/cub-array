@@ -57,7 +57,7 @@ private:
     template<typename TARGET>
     auto AppendTo(TARGET&& target, FromArray const& from) {
         from.ForEach([&, this](auto&& fromElem, auto i) {
-            if(!updateFlag.test(i)) {
+            if(!updateFlag[i]) {
                 policy.Append(target, fromElem);
             }
         });

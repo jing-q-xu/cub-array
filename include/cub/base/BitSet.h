@@ -11,7 +11,7 @@
 namespace detail {
     template<std::size_t N>
     auto DeduceBitSetType() -> auto {
-        if constexpr (N <= sizeof(uint64_t) * 8) {
+        if constexpr (N <= sizeof(std::size_t) * 8) {
             return IntBitSet<N>{};
         } else {
             return std::bitset<N>{};

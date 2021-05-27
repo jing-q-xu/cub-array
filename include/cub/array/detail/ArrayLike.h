@@ -73,6 +73,27 @@ namespace detail {
         auto DescSort() -> void {
             Sort(DEFAULT_GREATER_THAN);
         }
+
+        template<typename LESS, __lEsS_cHeCkEr>
+        auto PartialSort(LESS&& less, SizeType n) -> SizeType {
+            if(n == 0) return 0;
+
+            if(n < Data::num) {
+                std::partial_sort(Data::objs, Data::objs + n, Data::objs + Data::num, std::forward<LESS>(less));
+                return n;
+            } else {
+                Sort(std::forward<LESS>(less));
+                return Data::num;
+            }
+        }
+
+        auto PartialSort(SizeType n) -> SizeType {
+            return PartialSort(DEFAULT_LESS_THAN, n);
+        }
+
+        auto PartialDescSort(SizeType n) -> SizeType {
+            return PartialSort(DEFAULT_GREATER_THAN, n);
+        }
     };
 }
 

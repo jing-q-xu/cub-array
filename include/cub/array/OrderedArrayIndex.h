@@ -85,8 +85,7 @@ struct OrderedArrayIndex {
 private:
     template<typename LESS>
     auto FullSort(ARRAY const& array, LESS&& less) -> SizeType {
-        SizeType* begin = &indices[0];
-        std::stable_sort(begin, begin + indices.GetNum(), [&](auto l, auto r) {
+        indices.Sort([&](auto l, auto r) {
             return less(array[l], array[r]);
         });
         return indices.GetNum();
@@ -94,13 +93,9 @@ private:
 
     template<typename LESS>
     auto DoSort(ARRAY const& array, SizeType required, LESS&& less) -> SizeType {
-        required = std::min(required, indices.GetNum());
-        if(required == 0) return 0;
-        SizeType* begin = &indices[0];
-        std::partial_sort(begin, begin + required, begin + indices.GetNum(), [&](auto l, auto r) {
+        return indices.PartialSort([&](auto l, auto r) {
             return less(array[l], array[r]);
-        });
-        return required;
+        }, required);
     }
 
     auto InitIndices(ARRAY const& array, BitMap enabled) {
