@@ -9,7 +9,7 @@
 #include <cub/base/DeduceSizeType.h>
 #include <cub/base/SizeOfArray.h>
 #include <cub/base/BitSet.h>
-#include <cub/array/detail/LessChecker.h>
+#include <cub/array/detail/PredChecker.h>
 #include <cstdint>
 #include <type_traits>
 #include <optional>

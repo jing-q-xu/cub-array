@@ -7,7 +7,7 @@
 
 #include <cub/base/DeduceSizeType.h>
 #include <cub/base/BitSet.h>
-#include <cub/array/detail/LessChecker.h>
+#include <cub/array/detail/PredChecker.h>
 #include <cub/array/ValueArray.h>
 #include <cstdint>
 #include <algorithm>

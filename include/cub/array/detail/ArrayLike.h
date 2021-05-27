@@ -6,7 +6,7 @@
 #define CUB_ARRAY_ARRAYLIKE_H
 
 #include <cub/array/detail/ReadOnlyArrayLike.h>
-#include <cub/array/detail/LessChecker.h>
+#include <cub/array/detail/PredChecker.h>
 
 namespace detail {
     template<typename DATA_HOLDER>
