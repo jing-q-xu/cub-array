@@ -25,7 +25,7 @@ struct Placement
 
     auto Destroy() -> void {
         if constexpr (!std::is_trivially_destructible_v<T>) {
-            GetObject()->~T();
+            GetObj()->~T();
         }
     }
 
@@ -35,36 +35,36 @@ struct Placement
         return Emplace(std::forward<ARGS>(args)...);
     }
 
-    auto GetObject() const -> T const* {
+    auto GetObj() const -> T const* {
         return reinterpret_cast<T const*>(&obj);
     }
 
-    auto GetObject() -> T* {
+    auto GetObj() -> T* {
         return reinterpret_cast<T*>(&obj);
     }
 
     auto GetRef() const -> T const& {
-        return *GetObject();
+        return *GetObj();
     }
 
     auto GetRef() -> T& {
-        return *GetObject();
+        return *GetObj();
     }
 
     auto operator->() -> T* {
-        return GetObject();
+        return GetObj();
     }
 
     auto operator->() const -> T const* {
-        return GetObject();
+        return GetObj();
     }
 
     auto operator*() const -> T const& {
-        return *GetObject();
+        return *GetObj();
     }
 
     auto operator*() -> T& {
-        return *GetObject();
+        return *GetObj();
     }
 
 private:
