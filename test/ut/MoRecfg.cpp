@@ -16,16 +16,16 @@ struct PhyCfgChangeState {
     constexpr static uint8_t NO_CHANGE  = PRESENT;
     constexpr static uint8_t RE_CONFIG   = PRESENT | CHANGED;
 
-    uint8_t present : 1;
+    uint8_t selected : 1;
     uint8_t changed : 1;
 
     auto DoNothing() -> void {
-        present = false;
+        selected = false;
         changed = false;
     }
 
     auto ReCfg() -> void {
-        present = true;
+        selected = true;
         changed = true;
     }
 };
@@ -67,11 +67,6 @@ struct SelectedMoCfgState {
         return (changed || moId != this->moId);
     }
 
-    auto BuildNeigh(PhyCfgChangeState& phy, MoId moId) const -> void {
-        phy.present = shouldMeasureNeigh;
-        phy.changed = phy.present ? IsCfgChanged(moId) : false;
-    }
-
     uint8_t changed:1;
     uint8_t shouldMeasureNeigh:1;
 };
@@ -84,31 +79,41 @@ struct SelectedRsMoCfgState {
     ObjectArray<SelectedMoCfgState, 8> interFreq;
 };
 
-
-
 struct LocalCfgState {
     LocalCfgState() : configured{false}, confirmed{false} {}
 
-    auto Build(PhyCfgChangeState& phy) const -> void {
-        if(phy.present) {
-            if(ShouldFullReCfg()) {
-                phy.changed = true;
-            }
+    auto BuildSelected(PhyCfgChangeState& phy, MoId moId, SelectedMoCfgState const& selected) const -> void {
+        phy.selected = true;
+        phy.changed = selected.IsCfgChanged(moId) || NeverConfigured();
+    }
+
+    auto BuildNonSelected(PhyCfgChangeState& freq) const -> void {
+        freq.selected = false;
+        freq.changed = EverConfigured();
+    }
+
+    auto Build(PhyCfgChangeState& msg, SelectedMoCfgState const& selected, MoId moId, bool measNeigh) const -> void {
+        if(measNeigh) {
+            BuildSelected(msg, moId, selected);
         } else {
-            // Release!!! if ever configured, even never confirmed.
-            phy.changed = configured;
+            BuildNonSelected(msg);
         }
     }
 
 private:
-    auto ShouldFullReCfg() const -> bool {
+    auto NeverConfigured() const -> bool {
         // if never configured, or configured but not confirmed,
-        // full-configure again.
+        // it means we are not sure if PHY has the config of this
+        // MO or not. thus, re-configure is required.
         return !configured || (configured && !confirmed);
+        // return !confirmed; // should be enough.
+    }
+
+    auto EverConfigured() const -> bool {
+        return configured;
     }
 
 private:
-
     uint8_t configured:1;
     uint8_t confirmed:1;
 };
@@ -116,45 +121,32 @@ private:
 struct LocalMoCfgState {
     MoId    moId;
     CellGroup cellGroup;
-    LocalCfgState freqState;
+    LocalCfgState localFreqState;
 
-    auto BuildFreq(PhyMoCfgState& msg, SelectedMoCfgState const& selected) const -> void {
+    auto BuildInterFreq(PhyMoCfgState& msg, SelectedMoCfgState const& selected) const -> void {
+        localFreqState.Build(msg.freqChgState, selected, moId, true);
+        BuildKey(msg, selected);
+    }
+
+protected:
+    auto BuildKey(PhyMoCfgState& msg, SelectedMoCfgState const& selected) const -> void {
         msg.moId = selected.moId;
         msg.cg = selected.cg; // TODO:
-
-        selected.BuildNeigh(msg.freqChgState, moId);
-        freqState.Build(msg.freqChgState);
     }
 };
 
 struct LocalServingMoCfgState : LocalMoCfgState {
-    LocalCfgState cellState;
+    LocalCfgState localCellState;
 
     auto BuildSelected(PhyServingMoCfgState& msg, SelectedMoCfgState const& selected) const -> void {
-        BuildFreq(msg, selected);
-        BuildCell(msg.cellChgState, selected);
+        localFreqState.Build(msg.freqChgState, selected, moId, selected.shouldMeasureNeigh);
+        localCellState.BuildSelected(msg.cellChgState, moId, selected);
+        BuildKey(msg, selected);
     }
 
     auto BuildNonSelected(PhyServingMoCfgState& msg) const -> void {
-        BuildNonSelectedFreq(msg.freqChgState);
-        BuildNonSelectedCell(msg.cellChgState);
-    }
-
-private:
-    auto BuildCell(PhyCfgChangeState& cell, SelectedMoCfgState const& selected) const -> void {
-        cell.present = true;
-        cell.changed = selected.IsCfgChanged(moId);
-        cellState.Build(cell);
-    }
-
-    auto BuildNonSelectedFreq(PhyCfgChangeState& freq) const -> void {
-        freq.present = false;
-        freqState.Build(freq);
-    }
-
-    auto BuildNonSelectedCell(PhyCfgChangeState& cell) const -> void {
-        cell.present = false;
-        cellState.Build(cell);
+        localCellState.BuildNonSelected(msg.cellChgState);
+        localFreqState.BuildNonSelected(msg.freqChgState);
     }
 };
 
@@ -225,7 +217,7 @@ private:
 
     auto BuildSelectedInterFreq(LocalMoCfgState const* interFreq, PhyMoCfgState& msg, SelectedMoCfgState const& selected) -> void {
         if(interFreq) {
-            interFreq->BuildFreq(msg, selected);
+            interFreq->BuildInterFreq(msg, selected);
         } else {
             msg.freqChgState.ReCfg();
         }
@@ -246,7 +238,6 @@ private:
     std::optional<LocalServingMoCfgState> psCell;
     ObjectArray<LocalServingMoCfgState, 3> sCells;
     ObjectArray<LocalMoCfgState, 8> interFreqs;
-
 };
 
 

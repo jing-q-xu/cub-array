@@ -5178,7 +5178,7 @@ namespace Catch {
 
     struct ITagAliasRegistry {
         virtual ~ITagAliasRegistry();
-        // Nullptr if not present
+        // Nullptr if not selected
         virtual TagAlias const* find( std::string const& alias ) const = 0;
         virtual std::string expandAliases( std::string const& unexpandedTestSpec ) const = 0;
 
@@ -8395,7 +8395,7 @@ namespace Catch {
 
 // start catch_clara.h
 
-// Use Catch's value for console width (store Clara's off to the side, if present)
+// Use Catch's value for console width (store Clara's off to the side, if selected)
 #ifdef CLARA_CONFIG_CONSOLE_WIDTH
 #define CATCH_TEMP_CLARA_CONFIG_CONSOLE_WIDTH CATCH_CLARA_TEXTFLOW_CONFIG_CONSOLE_WIDTH
 #undef CATCH_CLARA_TEXTFLOW_CONFIG_CONSOLE_WIDTH
@@ -9669,7 +9669,7 @@ using detail::ParserResult;
 #pragma clang diagnostic pop
 #endif
 
-// Restore Clara's value for console width, if present
+// Restore Clara's value for console width, if selected
 #ifdef CATCH_TEMP_CLARA_CONFIG_CONSOLE_WIDTH
 #define CATCH_CLARA_TEXTFLOW_CONFIG_CONSOLE_WIDTH CATCH_TEMP_CLARA_CONFIG_CONSOLE_WIDTH
 #undef CATCH_TEMP_CLARA_CONFIG_CONSOLE_WIDTH
