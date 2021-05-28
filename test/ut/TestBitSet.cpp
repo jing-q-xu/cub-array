@@ -5,6 +5,9 @@
 #include <cub/base/BitSet.h>
 #include <catch.hpp>
 
+static_assert(!std::is_trivially_constructible_v<IntBitSet<10>>);
+static_assert(std::is_trivially_destructible_v<IntBitSet<10>>);
+
 SCENARIO("BitSet Size") {
     static_assert(sizeof(BitSet<8>) == 1);
     static_assert(sizeof(BitSet<9>) == 2);

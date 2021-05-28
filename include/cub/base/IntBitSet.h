@@ -6,17 +6,26 @@
 #define CUB_ARRAY_INTBITSET_H
 
 #include <cub/base/detail/DeduceBitSetIntType.h>
+#include <limits>
 
 template<std::size_t N>
 struct IntBitSet {
 private:
+    constexpr static auto MAX_BITS = sizeof(std::size_t) * 8;
     static_assert(N > 0);
+    static_assert(N <= MAX_BITS);
     using IntType = detail::DeduceBitSetIntType_t<N>;
-    constexpr static IntType MASK = (((IntType)1 << N) - 1);
+    constexpr static IntType MASK = N == MAX_BITS ? std::numeric_limits<std::size_t>::max() : (((IntType)1 << N) - 1);
 
 public:
     constexpr IntBitSet() = default;
     constexpr IntBitSet(IntType integral) : integral(MASK & integral) {}
+
+    constexpr IntBitSet(IntBitSet const&) = default;
+    constexpr IntBitSet(IntBitSet&&) = default;
+
+    auto operator=(IntBitSet const&) -> IntBitSet& = default;
+    auto operator=(IntBitSet&&) -> IntBitSet& = default;
 
     constexpr auto operator==(IntBitSet const& rhs) const -> bool {
         return integral == rhs.integral;

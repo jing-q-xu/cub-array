@@ -64,6 +64,10 @@ namespace detail {
             return Data::num == MAX_SIZE;
         }
 
+        auto Any() const -> bool {
+            return Data::Num > 0;
+        }
+
         auto GetFreeNum() const -> SizeType {
             return MAX_SIZE - Data::num;
         }
@@ -76,6 +80,9 @@ namespace detail {
             return (Trait::ToObject(Data::objs[n]));
         }
 
+        auto ByIndex(SizeType n) const -> ObjectType* {
+            return n < Data::num ? const_cast<ObjectType*>(&Trait::ToObject(Data::objs[n])) : nullptr;
+        }
 
     private:
         template<typename OP, __oP_cHeCkEr>
