@@ -85,8 +85,9 @@ public:
         integral = 0;
     }
 
-    auto flip() -> void {
+    auto flip() -> IntBitSet& {
         integral = (~integral & MASK);
+        return *this;
     }
 
     auto operator&=(IntBitSet const& rhs) -> IntBitSet& {

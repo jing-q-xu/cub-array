@@ -32,8 +32,7 @@ if constexpr(std::is_same_v<bool, __vIsIt_ReSuLt_TyPe>) { \
     return true; \
 } else if constexpr(std::is_convertible_v<std::size_t, __vIsIt_ReSuLt_TyPe>) { \
     return 0; \
-} else { \
-}
+} else {}
 
 namespace detail {
 
@@ -160,6 +159,10 @@ namespace detail {
         }
 
     public:
+        auto Last() const -> ObjectType* {
+            return Data::num == 0 ? nullptr : const_cast<ObjectType*>(&(*this)[Data::num - 1]);
+        }
+
         template<typename OP, __oP_cHeCkEr>
         auto ForEach(OP &&op, SizeType from = 0) -> auto {
             for (SizeType i = from; i < Data::num; i++) {

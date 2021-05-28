@@ -145,6 +145,14 @@ SCENARIO("ObjectArray Foreach") {
         REQUIRE(times == 3);
     }
 
+    {
+        auto times = 0;
+        array1.ForEach([&times](auto&& r) {
+            times++;
+        });
+        REQUIRE(times == 3);
+    }
+
 
 
 }

@@ -40,8 +40,7 @@ private:
     }
 
     auto TryAppend(FromArray const& from) -> void {
-        UpdateFlag allUpdated{};
-        allUpdated.set();
+        UpdateFlag allUpdated = UpdateFlag{}.flip();
 
         if(allUpdated == updateFlag) {
             return;
