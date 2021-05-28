@@ -54,16 +54,25 @@ namespace detail {
             Erase(p - base);
         }
 
-        auto Clear() -> void {
-            for (auto i = 0; i < Data::num; i++) {
-                Trait::Destroy(Data::objs[i]);
+        auto Clear(SizeType from = 0) -> void {
+            if constexpr(!std::is_trivially_destructible_v<ObjectType>) {
+                for (auto i = from; i < Data::num; i++) {
+                    Trait::Destroy(Data::objs[i]);
+                }
             }
-            Data::num = 0;
+
+            Data::num = std::min(from, Data::num);
         }
 
         template<typename LESS, __lEsS_cHeCkEr>
         auto Sort(LESS&& less) -> void {
-            std::stable_sort(Data::objs, Data::objs + Data::num, std::forward<LESS>(less));
+            if constexpr(std::is_same_v<ObjectType, std::decay_t<decltype(Data::objs[0])>>) {
+                std::stable_sort(Data::objs, Data::objs + Data::num, std::forward<LESS>(less));
+            } else {
+                std::stable_sort(Data::objs, Data::objs + Data::num, [&less](auto&& l, auto&& r) {
+                    return less(Trait::ToObject(l), Trait::ToObject(r));
+                });
+            }
         }
 
         auto Sort() -> void {
@@ -79,7 +88,13 @@ namespace detail {
             if(n == 0) return 0;
 
             if(n < Data::num) {
-                std::partial_sort(Data::objs, Data::objs + n, Data::objs + Data::num, std::forward<LESS>(less));
+                if constexpr(std::is_same_v<ObjectType, std::decay_t<decltype(Data::objs[0])>>) {
+                    std::partial_sort(Data::objs, Data::objs + n, Data::objs + Data::num, std::forward<LESS>(less));
+                } else {
+                    std::partial_sort(Data::objs, Data::objs + n, Data::objs + Data::num, [&less](auto&& l, auto&& r) {
+                        return less(Trait::ToObject(l), Trait::ToObject(r));
+                    });
+                }
                 return n;
             } else {
                 Sort(std::forward<LESS>(less));
