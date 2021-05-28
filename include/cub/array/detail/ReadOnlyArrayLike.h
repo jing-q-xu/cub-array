@@ -14,6 +14,27 @@
 #include <type_traits>
 #include <optional>
 
+#define __vIsIt_ReSuLt_TyPe std::decay_t<decltype(this->Visit(std::declval<OP&&>(), std::declval<SizeType>()))>
+
+#define __vIsIt_CoDe_BlOcK__ \
+if constexpr(std::is_same_v<bool, __vIsIt_ReSuLt_TyPe>) { \
+    if(auto r = Visit(std::forward<OP>(op), i); !r) return r; \
+} else if constexpr(std::is_convertible_v<std::size_t, __vIsIt_ReSuLt_TyPe>) { \
+    if(auto r = Visit(std::forward<OP>(op), i); r != 0) return r; \
+} else  { \
+    Visit(std::forward<OP>(op), i); \
+}
+
+
+
+#define __fOrEaCh_SuCcEsS_rEtUrN__ \
+if constexpr(std::is_same_v<bool, __vIsIt_ReSuLt_TyPe>) { \
+    return true; \
+} else if constexpr(std::is_convertible_v<std::size_t, __vIsIt_ReSuLt_TyPe>) { \
+    return 0; \
+} else { \
+}
+
 namespace detail {
 
     template<typename DATA_HOLDER>
@@ -86,20 +107,20 @@ namespace detail {
 
     private:
         template<typename OP, __oP_cHeCkEr>
-        auto Visit(OP &&op, SizeType i) -> void {
-            if constexpr (std::is_invocable_v<OP, ObjectType &, SizeType>) {
-                op((*this)[i], i);
+        auto Visit(OP &&op, SizeType i) -> auto {
+            if constexpr (std::is_invocable_v<OP, ObjectType&, SizeType>) {
+                return op((*this)[i], i);
             } else {
-                op((*this)[i]);
+                return op((*this)[i]);
             }
         }
 
         template<typename OP, __oP_cHeCkEr>
-        auto Visit(OP &&op, SizeType i) const -> void {
+        auto Visit(OP &&op, SizeType i) const -> auto {
             if constexpr (std::is_invocable_v<OP, ObjectType const &, SizeType>) {
-                op((*this)[i], i);
+                return op((*this)[i], i);
             } else {
-                op((*this)[i]);
+                return op((*this)[i]);
             }
         }
 
@@ -140,39 +161,41 @@ namespace detail {
 
     public:
         template<typename OP, __oP_cHeCkEr>
-        auto ForEach(OP &&op, std::size_t from = 0) -> void {
-            for (auto i = from; i < Data::num; i++) {
-                Visit(std::forward<OP>(op), i);
+        auto ForEach(OP &&op, SizeType from = 0) -> auto {
+            for (SizeType i = from; i < Data::num; i++) {
+                __vIsIt_CoDe_BlOcK__
             }
+            __fOrEaCh_SuCcEsS_rEtUrN__
         }
 
         template<typename OP, __oP_cHeCkEr>
-        auto ForEach(OP &&op, BitMap enabled, std::size_t from = 0) -> void {
+        auto ForEach(OP &&op, BitMap enabled, SizeType from = 0) -> auto {
             for (auto i = from; i < Data::num; i++) {
-                if (enabled[i]) {
-                    Visit(std::forward<OP>(op), i);
-                }
+                if (!enabled[i]) continue;
+                __vIsIt_CoDe_BlOcK__
             }
+            __fOrEaCh_SuCcEsS_rEtUrN__
         }
 
         template<typename OP, __oP_cHeCkEr>
-        auto ForEach(OP &&op, std::size_t from = 0) const -> void {
+        auto ForEach(OP &&op, SizeType from = 0) const -> auto {
             for (auto i = from; i < Data::num; i++) {
-                Visit(std::forward<OP>(op), i);
+                __vIsIt_CoDe_BlOcK__
             }
+            __fOrEaCh_SuCcEsS_rEtUrN__
         }
 
         template<typename OP, __oP_cHeCkEr>
-        auto ForEach(OP &&op, BitMap scope, std::size_t from = 0) const -> void {
+        auto ForEach(OP &&op, BitMap scope, SizeType from = 0) const -> auto {
             for (auto i = from; i < Data::num; i++) {
-                if (scope[i]) {
-                    Visit(std::forward<OP>(op), i);
-                }
+                if (!scope[i]) continue;
+                __vIsIt_CoDe_BlOcK__
             }
+            __fOrEaCh_SuCcEsS_rEtUrN__
         }
 
         template<typename PRED, __pReD_cHeCkEr>
-        auto FindIndex(PRED &&pred, std::size_t from = 0) const -> std::optional<SizeType> {
+        auto FindIndex(PRED &&pred, SizeType from = 0) const -> std::optional<SizeType> {
             for (auto i = from; i < Data::num; i++) {
                 if (Pred(std::forward<PRED>(pred), i)) {
                     return i;

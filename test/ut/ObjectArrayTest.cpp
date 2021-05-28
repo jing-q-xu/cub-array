@@ -88,3 +88,63 @@ SCENARIO("ObjectArray equality") {
         REQUIRE(array1 != array2);
     }
 }
+
+SCENARIO("ObjectArray Foreach") {
+    ObjectArray<int, 10> array1;
+    array1.Append(0);
+    array1.Append(1);
+    array1.Append(2);
+
+    {
+        auto times = 0;
+        bool result = array1.ForEach([&times](auto&& r) {
+            times++;
+            return r != 0;
+        });
+        REQUIRE(!result);
+        REQUIRE(times == 1);
+    }
+
+    {
+        auto times = 0;
+        bool result = array1.ForEach([&times](auto&& r) {
+            times++;
+            return r == 0;
+        });
+        REQUIRE(!result);
+        REQUIRE(times == 2);
+    }
+
+    {
+        auto times = 0;
+        bool result = array1.ForEach([&times](auto&& r) {
+            times++;
+            return true;
+        });
+        REQUIRE(result);
+        REQUIRE(times == 3);
+    }
+
+    {
+        auto times = 0;
+        auto result = array1.ForEach([&times](auto&& r) {
+            times++;
+            return 1;
+        });
+        REQUIRE(result == 1);
+        REQUIRE(times == 1);
+    }
+
+    {
+        auto times = 0;
+        auto result = array1.ForEach([&times](auto&& r) {
+            times++;
+            return 0;
+        });
+        REQUIRE(result == 0);
+        REQUIRE(times == 3);
+    }
+
+
+
+}
