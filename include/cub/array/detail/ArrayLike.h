@@ -33,9 +33,15 @@ namespace detail {
 
         template<typename ... ARGS>
         auto Replace(SizeType i, ARGS &&... args) -> ObjectType * {
-            if (i >= MAX_SIZE) return nullptr;
+            if (i >= Data::num) return nullptr;
             Trait::Replace(Data::objs[i], std::forward<ARGS>(args)...);
             return &(*this)[i];
+        }
+
+        template<typename ... ARGS>
+        auto ReplaceObj(ObjectType const& obj, ARGS &&... args) -> ObjectType * {
+            if(&obj < Data::objs) return nullptr;
+            return Replace(&obj - &Trait::ToObject(Data::objs[0]), std::forward<ARGS>(args)...);
         }
 
         auto Erase(SizeType i) -> void {
