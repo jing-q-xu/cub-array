@@ -57,9 +57,17 @@ struct PhyRsMoCfgState {
 
     ObjectArray<PhyServingMoCfgState, 3> sCells;
     ObjectArray<PhyMoCfgState, 8> interFreq;
+    bool shouldReleaseSCells{false};
+    bool shouldReleaseInterFreq{false};
 };
 
-struct SelectedMoCfgState {
+struct PhyMoCfgStateMsg {
+    PhyRsMoCfgState ssb;
+    PhyRsMoCfgState csi;
+};
+
+///////////////////////////////////////////////////////////////
+struct SelectedMo {
     MoId    moId;
     CellGroup cg;
 
@@ -71,18 +79,20 @@ struct SelectedMoCfgState {
     uint8_t shouldMeasureNeigh:1;
 };
 
-struct SelectedRsMoCfgState {
-    SelectedMoCfgState pCell;
-    std::optional<SelectedMoCfgState> psCell;
+struct SelectedRsMoList {
+    SelectedMo pCell;
+    std::optional<SelectedMo> psCell;
 
-    ObjectArray<SelectedMoCfgState, 3> sCells;
-    ObjectArray<SelectedMoCfgState, 8> interFreq;
+    ObjectArray<SelectedMo, 3> sCells;
+    ObjectArray<SelectedMo, 8> interFreq;
 };
+
+using SelectedMoList = ObjectArray<SelectedRsMoList, 2> ;
 
 struct LocalCfgState {
     LocalCfgState() : configured{false}, confirmed{false} {}
 
-    auto BuildSelected(PhyCfgChangeState& phy, MoId moId, SelectedMoCfgState const& selected) const -> void {
+    auto BuildSelected(PhyCfgChangeState& phy, MoId moId, SelectedMo const& selected) const -> void {
         phy.selected = true;
         phy.changed = selected.IsCfgChanged(moId) || NeverConfigured();
     }
@@ -92,7 +102,7 @@ struct LocalCfgState {
         freq.changed = EverConfigured();
     }
 
-    auto Build(PhyCfgChangeState& msg, SelectedMoCfgState const& selected, MoId moId, bool measNeigh) const -> void {
+    auto Build(PhyCfgChangeState& msg, SelectedMo const& selected, MoId moId, bool measNeigh) const -> void {
         if(measNeigh) {
             BuildSelected(msg, moId, selected);
         } else {
@@ -123,13 +133,13 @@ struct LocalMoCfgState {
     CellGroup cellGroup;
     LocalCfgState localFreqState;
 
-    auto BuildInterFreq(PhyMoCfgState& msg, SelectedMoCfgState const& selected) const -> void {
+    auto BuildInterFreq(PhyMoCfgState& msg, SelectedMo const& selected) const -> void {
         localFreqState.Build(msg.freqChgState, selected, moId, true);
         BuildKey(msg, selected);
     }
 
 protected:
-    auto BuildKey(PhyMoCfgState& msg, SelectedMoCfgState const& selected) const -> void {
+    auto BuildKey(PhyMoCfgState& msg, SelectedMo const& selected) const -> void {
         msg.moId = selected.moId;
         msg.cg = selected.cg; // TODO:
     }
@@ -138,7 +148,7 @@ protected:
 struct LocalServingMoCfgState : LocalMoCfgState {
     LocalCfgState localCellState;
 
-    auto BuildSelected(PhyServingMoCfgState& msg, SelectedMoCfgState const& selected) const -> void {
+    auto BuildSelected(PhyServingMoCfgState& msg, SelectedMo const& selected) const -> void {
         localFreqState.Build(msg.freqChgState, selected, moId, selected.shouldMeasureNeigh);
         localCellState.BuildSelected(msg.cellChgState, moId, selected);
         BuildKey(msg, selected);
@@ -151,7 +161,7 @@ struct LocalServingMoCfgState : LocalMoCfgState {
 };
 
 struct LocalMeasCfgState {
-    auto Build(PhyRsMoCfgState& msg, SelectedRsMoCfgState const& selected) -> void {
+    auto Build(PhyRsMoCfgState& msg, SelectedRsMoList const& selected) -> void {
         pCell.BuildSelected(msg.pCell, selected.pCell);
         BuildPsCell(msg.psCell, selected);
         BuildSCells(msg, selected);
@@ -159,7 +169,7 @@ struct LocalMeasCfgState {
     }
 
 private:
-    auto BuildPsCell(PhyServingMoCfgState& msg, SelectedRsMoCfgState const& selected) -> void {
+    auto BuildPsCell(PhyServingMoCfgState& msg, SelectedRsMoList const& selected) -> void {
         if(selected.psCell) {
             BuildPsCellWhenSelected(msg, *selected.psCell);
         } else {
@@ -167,7 +177,7 @@ private:
         }
     }
 
-    auto BuildPsCellWhenSelected(PhyServingMoCfgState& msg, SelectedMoCfgState const& selected) -> void {
+    auto BuildPsCellWhenSelected(PhyServingMoCfgState& msg, SelectedMo const& selected) -> void {
         BuildSelectedServingMo(psCell ? &(*psCell) : nullptr, msg, selected);
     }
 
@@ -175,39 +185,48 @@ private:
         if(psCell) {
             psCell->BuildNonSelected(msg);
         } else {
+            // Not selected & never configured,
             // Both cell & freq does nothing!!!
             msg.cellChgState.DoNothing();
             msg.freqChgState.DoNothing();
         }
     }
 
-    auto BuildSCells(PhyRsMoCfgState& msg, SelectedRsMoCfgState const& selected) -> void {
-        selected.sCells.ForEach([this, &phySCells = msg.sCells](SelectedMoCfgState const& sCell) {
-            BuildSCell(*phySCells.Append(), sCell);
-        });
+    auto BuildSCells(PhyRsMoCfgState& msg, SelectedRsMoList const& selected) -> void {
+        if(selected.sCells.IsEmpty()) {
+            msg.shouldReleaseSCells = !sCells.IsEmpty();
+        } else {
+            selected.sCells.ForEach([this, &phySCells = msg.sCells](SelectedMo const& sCell) {
+                BuildSCell(*phySCells.Append(), sCell);
+            });
+        }
     }
 
-    auto BuildSCell(PhyServingMoCfgState& msg, SelectedMoCfgState const& selected) -> void {
+    auto BuildSCell(PhyServingMoCfgState& msg, SelectedMo const& selected) -> void {
         auto* local = sCells.Find([&selected](LocalServingMoCfgState const& local) {
             return selected.moId == local.moId;
         });
         BuildSelectedServingMo(local, msg, selected);
     }
 
-    auto BuildInterFreqs(PhyRsMoCfgState& msg, SelectedRsMoCfgState const& selected) -> void {
-        selected.interFreq.ForEach([this, &phy = msg.interFreq](SelectedMoCfgState const& interFreq) {
-            BuildInterFreq(*phy.Append(), interFreq);
-        });
+    auto BuildInterFreqs(PhyRsMoCfgState& msg, SelectedRsMoList const& selected) -> void {
+        if(selected.interFreq.IsEmpty()) {
+            msg.shouldReleaseInterFreq = !interFreqs.IsEmpty();
+        } else {
+            selected.interFreq.ForEach([this, &phy = msg.interFreq](SelectedMo const& interFreq) {
+                BuildInterFreq(*phy.Append(), interFreq);
+            });
+        }
     }
 
-    auto BuildInterFreq(PhyMoCfgState& msg, SelectedMoCfgState const& selected) -> void {
+    auto BuildInterFreq(PhyMoCfgState& msg, SelectedMo const& selected) -> void {
         auto* local = interFreqs.Find([&selected](LocalMoCfgState const& local) {
             return selected.moId == local.moId;
         });
         BuildSelectedInterFreq(local, msg, selected);
     }
 
-    auto BuildSelectedServingMo(LocalServingMoCfgState const* serving, PhyServingMoCfgState& msg, SelectedMoCfgState const& selected) -> void {
+    auto BuildSelectedServingMo(LocalServingMoCfgState const* serving, PhyServingMoCfgState& msg, SelectedMo const& selected) -> void {
         if(serving) {
             serving->BuildSelected(msg, selected);
         } else {
@@ -215,7 +234,7 @@ private:
         }
     }
 
-    auto BuildSelectedInterFreq(LocalMoCfgState const* interFreq, PhyMoCfgState& msg, SelectedMoCfgState const& selected) -> void {
+    auto BuildSelectedInterFreq(LocalMoCfgState const* interFreq, PhyMoCfgState& msg, SelectedMo const& selected) -> void {
         if(interFreq) {
             interFreq->BuildInterFreq(msg, selected);
         } else {
@@ -223,7 +242,7 @@ private:
         }
     }
 
-    auto BuildForNewSelected(PhyServingMoCfgState& msg, SelectedMoCfgState const& selected) -> void {
+    auto BuildForNewSelected(PhyServingMoCfgState& msg, SelectedMo const& selected) -> void {
         // never configured before
         msg.cellChgState.ReCfg();
 
@@ -241,4 +260,11 @@ private:
 };
 
 
-struct PhyMeasCfgState : ObjectArray<PhyRsMoCfgState, 2> {};
+struct LocalPhyMeasCfgState {
+    auto Build(PhyMoCfgStateMsg& msg, SelectedMoList const& selected) {
+    }
+
+private:
+    std::optional<LocalMeasCfgState> ssb;
+    std::optional<LocalMeasCfgState> csi;
+};
