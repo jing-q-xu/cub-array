@@ -14,8 +14,11 @@
 #include <type_traits>
 #include <optional>
 
-#define __vIsIt_ReSuLt_TyPe std::decay_t<decltype(this->Visit(std::declval<OP&&>(), std::declval<SizeType>()))>
+////////////////////////////////////////////////////////////////////////////////////////
+#define __vIsIt_ReSuLt_TyPe \
+std::decay_t<decltype(this->Visit(std::declval<OP&&>(), std::declval<SizeType>()))>
 
+////////////////////////////////////////////////////////////////////////////////////////
 #define __vIsIt_CoDe_BlOcK__ \
 if constexpr(std::is_same_v<bool, __vIsIt_ReSuLt_TyPe>) { \
     if(auto r = Visit(std::forward<OP>(op), i); !r) return r; \
@@ -25,8 +28,7 @@ if constexpr(std::is_same_v<bool, __vIsIt_ReSuLt_TyPe>) { \
     Visit(std::forward<OP>(op), i); \
 }
 
-
-
+////////////////////////////////////////////////////////////////////////////////////////
 #define __fOrEaCh_SuCcEsS_rEtUrN__ \
 if constexpr(std::is_same_v<bool, __vIsIt_ReSuLt_TyPe>) { \
     return true; \
@@ -34,6 +36,7 @@ if constexpr(std::is_same_v<bool, __vIsIt_ReSuLt_TyPe>) { \
     return 0; \
 } else {}
 
+////////////////////////////////////////////////////////////////////////////////////////
 namespace detail {
 
     template<typename DATA_HOLDER>

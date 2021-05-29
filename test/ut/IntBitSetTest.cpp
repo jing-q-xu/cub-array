@@ -3,6 +3,7 @@
 //
 
 #include <cub/base/IntBitSet.h>
+#include <cub/base/BitSet.h>
 #include <limits>
 #include <catch.hpp>
 
@@ -86,3 +87,4 @@ SCENARIO("IntBitSet bi-op") {
 
     REQUIRE((IntBitSet<7>{} ^ IntBitSet<7>{}) == IntBitSet<7>{});
 };
+
