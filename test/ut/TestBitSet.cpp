@@ -5,7 +5,7 @@
 #include <cub/base/BitSet.h>
 #include <catch.hpp>
 
-static_assert(!std::is_trivially_constructible_v<IntBitSet<10>>);
+static_assert(std::is_trivially_copyable_v<IntBitSet<10>>);
 static_assert(std::is_trivially_destructible_v<IntBitSet<10>>);
 
 SCENARIO("BitSet Size") {

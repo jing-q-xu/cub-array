@@ -8,6 +8,7 @@
 #include <cub/base/DeduceSizeType.h>
 #include <cub/array/detail/ObjectTrait.h>
 #include <cstdint>
+#include <cstring>
 
 namespace detail {
     template<typename T, std::size_t MAX_NUM, typename OBJ = T>
@@ -20,8 +21,6 @@ namespace detail {
         static_assert(alignof(T) == alignof(OBJ));
 
     protected:
-        static constexpr auto COPIABLE = std::is_trivially_copyable_v<T> && std::is_trivially_copy_constructible_v<T>;
-
         auto ClearContent() -> void {
             if constexpr (!std::is_trivially_destructible_v<T>) {
                 for(int i=0; i<num; i++) Trait::Destroy(objs[i]);
@@ -56,7 +55,7 @@ namespace detail {
         }
 
         auto MoveFrom(ArrayHolder&& rhs) {
-            if constexpr (std::is_trivially_move_constructible_v<T> && COPIABLE) {
+            if constexpr (std::is_trivially_copyable_v<T>) {
                 ::memcpy(objs, rhs.objs, sizeof(OBJ) * num);
             } else {
                 for(int i=0; i<num; i++) {
@@ -68,7 +67,7 @@ namespace detail {
         }
 
         auto CopyFrom(ArrayHolder const& rhs) {
-            if constexpr (COPIABLE) {
+            if constexpr (std::is_trivially_copyable_v<T>) {
                 ::memcpy(objs, rhs.objs, sizeof(T) * num);
             } else {
                 for(int i=0; i<num; i++) {
