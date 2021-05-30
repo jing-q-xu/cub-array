@@ -161,22 +161,25 @@ namespace detail {
             return (*const_cast<decltype(this) const>(this));
         }
 
-        template<bool EXCLUDE_SCOPE, typename LESS, __lEsS_cHeCkEr>
-        auto MinElem(LESS &&less, BitMap scope, SizeType from = 0) const -> ObjectType const * {
-            SizeType indices[MAX_SIZE];
-            auto n = 0;
+        template<bool EXCLUDE_SCOPE>
+        auto GetStart(BitMap scope, SizeType from) const -> std::optional<SizeType> {
+            if (from >= Data::num) return std::nullopt;
             for (auto i = from; i < Data::num; i++) {
-                if (scope[i] != EXCLUDE_SCOPE) {
-                    indices[n++] = i;
-                }
+                if (scope[i] != EXCLUDE_SCOPE) return i;
             }
+            return std::nullopt;
+        }
 
-            if (n == 0) return nullptr;
-
-            auto found = std::min_element(indices, indices + n, [&](auto &&l, auto &&r) {
-                return less((*this)[l], (*this)[r]);
-            });
-            return (found == indices + n) ? nullptr : &(*this)[*found];
+        template<bool EXCLUDE_SCOPE, typename LESS, __lEsS_cHeCkEr>
+        auto MinElemIndex(LESS &&less, BitMap scope, SizeType from = 0) const -> std::optional<SizeType> {
+            auto start = GetStart<EXCLUDE_SCOPE>(scope, from);
+            if(!start) return std::nullopt;
+            auto minElem = *start;
+            for (auto i = minElem+1; i < Data::num; i++) {
+                if (scope[i] == EXCLUDE_SCOPE) continue;
+                if(less((*this)[i], (*this)[minElem])) minElem = i;
+            }
+            return minElem;
         }
 
     public:
@@ -295,40 +298,41 @@ namespace detail {
         }
 
         template<typename LESS, __lEsS_cHeCkEr>
-        auto MinElem(LESS &&less, BitMap scope, SizeType from = 0) const -> ObjectType const * {
-            return MinElem<false>(std::forward<LESS>(less), scope, from);
+        auto MinElemIndex(LESS &&less, BitMap scope, SizeType from = 0) const -> std::optional<SizeType> {
+            return MinElemIndex<false>(std::forward<LESS>(less), scope, from);
         }
 
-        template<typename LESS, __lEsS_cHeCkEr>
-        auto MinElemEx(LESS &&less, BitMap excluded, SizeType from = 0) const -> ObjectType const * {
-            return MinElem<true>(std::forward<LESS>(less), excluded, from);
-        }
-
-        template<typename LESS, __lEsS_cHeCkEr>
-        auto MinElemEx(LESS &&less, BitMap excluded, SizeType from = 0) -> ObjectType * {
-            return const_cast<ObjectType *>(Ref().MinElemEx(std::forward<LESS>(less), excluded, from));
-        }
-
-        auto MinElemEx(BitMap excluded, SizeType from = 0) const -> ObjectType const * {
-            return MinElemEx(DEFAULT_LESS_THAN, excluded, from);
-        }
-
-        auto MinElemEx(BitMap excluded, SizeType from = 0) -> ObjectType * {
-            return MinElemEx(DEFAULT_LESS_THAN, excluded, from);
+        auto MinElemIndex(BitMap enabled, SizeType from = 0) const -> std::optional<SizeType> {
+            return MinElemIndex(DEFAULT_LESS_THAN, enabled, from);
         }
 
         template<typename LESS, __lEsS_cHeCkEr>
         auto MinElemIndexEx(LESS &&less, BitMap excluded, SizeType from = 0) const -> std::optional<SizeType> {
-            return GetIndexEx(MinElem(std::forward<LESS>(less), excluded, from));
+            return MinElemIndex<true>(std::forward<LESS>(less), excluded, from);
         }
 
         auto MinElemIndexEx(BitMap excluded, SizeType from = 0) const -> std::optional<SizeType> {
-            return GetIndexEx(MinElem(DEFAULT_LESS_THAN, excluded, from));
+            return MinElemIndexEx(DEFAULT_LESS_THAN, excluded, from);
         }
 
         template<typename LESS, __lEsS_cHeCkEr>
-        auto MinElem(LESS &&less, BitMap enabled, SizeType from = 0) -> ObjectType * {
-            return const_cast<ObjectType *>(Ref().MinElem(std::forward<LESS>(less), enabled, from));
+        auto MinElem(LESS &&less, BitMap scope, SizeType from = 0) const -> ObjectType const * {
+            return GetObj(MinElemIndex(std::forward<LESS>(less), scope, from));
+        }
+
+        template<typename LESS, __lEsS_cHeCkEr>
+        auto MinElem(LESS &&less, BitMap scope, SizeType from = 0) -> ObjectType * {
+            return GetObj(MinElemIndex(std::forward<LESS>(less), scope, from));
+        }
+
+        template<typename LESS, __lEsS_cHeCkEr>
+        auto MinElemEx(LESS &&less, BitMap excluded, SizeType from = 0) const -> ObjectType const * {
+            return GetObj(MinElemIndexEx(std::forward<LESS>(less), excluded, from));
+        }
+
+        template<typename LESS, __lEsS_cHeCkEr>
+        auto MinElemEx(LESS &&less, BitMap excluded, SizeType from = 0) -> ObjectType * {
+            return GetObj(MinElemIndexEx(std::forward<LESS>(less), excluded, from));
         }
 
         auto MinElem(BitMap enabled, SizeType from = 0) const -> ObjectType const * {
@@ -339,14 +343,14 @@ namespace detail {
             return MinElem(DEFAULT_LESS_THAN, enabled, from);
         }
 
-        template<typename LESS, __lEsS_cHeCkEr>
-        auto MinElemIndex(LESS &&less, BitMap enabled, SizeType from = 0) const -> std::optional<SizeType> {
-            return GetIndex(MinElem(std::forward<LESS>(less), enabled, from));
+        auto MinElemEx(BitMap excluded, SizeType from = 0) const -> ObjectType const * {
+            return MinElemEx(DEFAULT_LESS_THAN, excluded, from);
         }
 
-        auto MinElemIndex(BitMap enabled, SizeType from = 0) const -> std::optional<SizeType> {
-            return MinElemIndex(DEFAULT_LESS_THAN, enabled, from);
+        auto MinElemEx(BitMap excluded, SizeType from = 0) -> ObjectType * {
+            return MinElemEx(DEFAULT_LESS_THAN, excluded, from);
         }
+
 
         template<typename LESS, __lEsS_cHeCkEr>
         auto MinElem(LESS &&less, SizeType from = 0) -> ObjectType * {
