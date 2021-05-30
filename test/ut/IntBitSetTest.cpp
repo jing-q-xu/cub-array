@@ -86,5 +86,21 @@ SCENARIO("IntBitSet bi-op") {
     REQUIRE(~IntBitSet<7>(0x2) == IntBitSet<7>{0x7D});
 
     REQUIRE((IntBitSet<7>{} ^ IntBitSet<7>{}) == IntBitSet<7>{});
+
+    REQUIRE((IntBitSet<7>(0x2) >> 1) == IntBitSet<7>(0x1));
+    REQUIRE((IntBitSet<7>(0x2) << 1) == IntBitSet<7>(0x4));
+
+    {
+        IntBitSet<7> a(0x2);
+        a <<= 1;
+        REQUIRE(a == IntBitSet<7>(0x4));
+    }
+
+    {
+        IntBitSet<7> a(0x2);
+        a >>= 1;
+        REQUIRE(a == IntBitSet<7>(0x1));
+    }
+
 };
 

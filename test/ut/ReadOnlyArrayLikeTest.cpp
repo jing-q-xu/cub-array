@@ -333,4 +333,25 @@ SCENARIO("const Placement ReadOnlyArrayLike MinElem") {
         REQUIRE(result);
         REQUIRE(*result == 4);
     }
+
+    {
+        IntArray::BitMap excluded{};
+        excluded.set(1);
+        excluded.set(2);
+        excluded.set(4);
+
+        auto result = array.MinElemIndexEx([](auto&& l, auto&& r) {
+            return l < r;
+        }, excluded);
+
+        REQUIRE(result);
+        REQUIRE(*result == 3);
+
+        result = array.MaxElemIndexEx([](auto&& l, auto&& r) {
+            return l < r;
+        }, excluded);
+
+        REQUIRE(result);
+        REQUIRE(*result == 5);
+    }
 }

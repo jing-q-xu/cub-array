@@ -106,7 +106,7 @@ public:
     }
 
     auto operator<<(std::size_t pos) -> IntBitSet {
-        return IntBitSet{integral << pos};
+        return IntBitSet(integral << pos);
     }
 
     auto operator<<=(std::size_t pos) -> IntBitSet& {
@@ -116,7 +116,7 @@ public:
     }
 
     auto operator>>(std::size_t pos) -> IntBitSet {
-        return IntBitSet{integral << pos};
+        return IntBitSet(integral >> pos);
     }
 
     auto operator>>=(std::size_t pos) -> IntBitSet& {
