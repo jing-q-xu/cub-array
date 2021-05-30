@@ -17,7 +17,8 @@ struct ArrayAgingUpdater {
     using ToObject = typename ToArray::ObjectType;
 
     ArrayAgingUpdater(ToArray& to, POLICY& policy)
-            : to{to}, policy{policy} {}
+            : to{to}, policy{policy}
+    {}
 
     auto operator()(FromArray const& from) -> void {
         Update(from);
@@ -41,7 +42,6 @@ private:
 
     auto TryAppend(FromArray const& from) -> void {
         auto numOfUpdated = updateFlag.count();
-
         if(numOfUpdated == from.GetNum()) {
             return;
         }
@@ -74,23 +74,23 @@ private:
         auto cnt = sorted.DescSort();
         auto rest = to.GetFreeNum();
 
-        BitSet<ToArray::MAX_SIZE> removable = policy.GetRemovable();
-        BitSet<ToArray::MAX_SIZE> removed;
+        BitSet<ToArray::MAX_SIZE> replaceable = policy.GetReplaceable();
+        BitSet<ToArray::MAX_SIZE> replaced;
 
         for(auto i=rest; i<cnt; i++) {
-            if(removable.none()) break;
-            auto elemIndex = to.MinElemIndex(removable);
+            if(replaceable.none()) break;
+            auto elemIndex = to.MinElemIndex(replaceable);
             if(!elemIndex) break;
 
             if(policy.Less(sorted[i], to[*elemIndex])) break;
 
-            removable.reset(*elemIndex);
-            removed.set(*elemIndex);
+            replaceable.reset(*elemIndex);
+            replaced.set(*elemIndex);
             policy.Replace(to, *elemIndex, sorted[i]);
         }
 
-        if(removed.any()) {
-            policy.OnRemoved(removed);
+        if(replaced.any()) {
+            policy.OnReplaced(replaced);
         }
 
         for(auto i=0; i<rest; i++) {
@@ -101,8 +101,7 @@ private:
 private:
     ToArray&         to;
     POLICY&          policy;
-    using UpdateFlag = BitSet<FromArray::MAX_SIZE>;
-    UpdateFlag updateFlag{};
+    BitSet<FromArray::MAX_SIZE> updateFlag{};
 };
 
 #endif //CUB_ARRAY_ARRAYAGINGUPDATER_H

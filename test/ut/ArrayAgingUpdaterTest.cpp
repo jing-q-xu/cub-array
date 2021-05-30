@@ -79,13 +79,13 @@ namespace {
             to.Replace(index, obj.id, obj.value);
         }
 
-        auto GetRemovable() const -> BitMap {
+        auto GetReplaceable() const -> BitMap {
             BitMap map;
             map.set();
             return map;
         }
 
-        auto OnRemoved(BitMap) -> void {
+        auto OnReplaced(BitMap) -> void {
 
         }
     };
