@@ -135,20 +135,6 @@ namespace detail {
             }
         }
 
-        auto GetRemain(BitMap enabled, SizeType from) const -> BitMap {
-            if constexpr (MAX_SIZE <= sizeof(unsigned long long)) {
-                return enabled & BitMap{~((1ULL << from) - 1)};
-            } else {
-                BitMap remain = enabled;
-                for (auto i = 0; i < from; i++) {
-                    remain.reset(i);
-                    if (remain.none()) break;
-                }
-                return remain;
-            }
-
-        }
-
         auto GetObj(std::optional<SizeType> index) const -> auto {
             return index ? &(*this)[*index] : nullptr;
         }
@@ -161,16 +147,38 @@ namespace detail {
             return (*const_cast<decltype(this) const>(this));
         }
 
+        template<bool EXCLUDE_SCOPE>
+        auto GetBits(BitMap scope, SizeType from) const -> BitMap {
+            if constexpr(EXCLUDE_SCOPE) {
+                scope = ~scope;
+            }
+            auto n = scope.size() - Data::num;
+            return (scope << n) >> (n + from);
+        }
+
+        template<bool EXCLUDE_SCOPE, typename PRED, __pReD_cHeCkEr>
+        auto FindIndex(PRED &&pred, BitMap scope, SizeType from = 0) const -> std::optional<SizeType> {
+            if (from >= Data::num) return std::nullopt;
+            if constexpr(scope.size() <= sizeof(std::size_t) * 8) {
+                auto bits = GetBits<EXCLUDE_SCOPE>(scope, from);
+                for(auto i = from; bits.any(); bits >>= 1, ++i) {
+                    if (bits[0] && Pred(std::forward<PRED>(pred), i)) return i;
+                }
+            } else {
+                for (auto i = from; i < Data::num; i++) {
+                    if (scope[i] != EXCLUDE_SCOPE && Pred(std::forward<PRED>(pred), i)) return i;
+                }
+            }
+
+            return std::nullopt;
+        }
+
         template<bool EXCLUDE_SCOPE, typename LESS, __lEsS_cHeCkEr>
         auto MinElemIndex(LESS &&less, BitMap scope, SizeType from = 0) const -> std::optional<SizeType> {
             if (from >= Data::num) return std::nullopt;
             if constexpr(scope.size() <= sizeof(std::size_t) * 8) {
-                if(EXCLUDE_SCOPE) {
-                    scope = ~scope;
-                }
-                auto n = scope.size() - Data::num;
+                auto bits = GetBits<EXCLUDE_SCOPE>(scope, from);
                 int i = from;
-                auto bits = (scope << n) >> (n + from);
                 for(; bits.any(); bits >>= 1, ++i) {
                     if (!bits[0]) continue;
                     break;
@@ -279,29 +287,12 @@ namespace detail {
 
         template<typename PRED, __pReD_cHeCkEr>
         auto FindIndex(PRED &&pred, BitMap enabled, SizeType from = 0) const -> std::optional<SizeType> {
-            from = std::min(from, Data::num);
-            auto remain = from == 0 ? enabled : GetRemain(enabled, from);
-            for (auto i = from; i < Data::num; i++) {
-                if (remain.none()) break;
-                if(!remain[i]) continue;
-                if (Pred(std::forward<PRED>(pred), i)) {
-                    return i;
-                }
-                remain.reset(i);
-            }
-
-            return std::nullopt;
+            return FindIndex<false>(std::forward<PRED>(pred), enabled, from);
         }
 
         template<typename PRED, __pReD_cHeCkEr>
-        auto FindIndexEx(PRED &&pred, BitMap disabled, SizeType from = 0) const -> std::optional<SizeType> {
-            for (auto i = from; i < Data::num; i++) {
-                if (!disabled[i] && Pred(std::forward<PRED>(pred), i)) {
-                    return i;
-                }
-            }
-
-            return std::nullopt;
+        auto FindIndexEx(PRED &&pred, BitMap excluded, SizeType from = 0) const -> std::optional<SizeType> {
+            return FindIndex<true>(std::forward<PRED>(pred), excluded, from);
         }
 
         template<typename PRED, __pReD_cHeCkEr>
