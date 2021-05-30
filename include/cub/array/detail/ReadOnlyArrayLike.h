@@ -372,7 +372,6 @@ namespace detail {
             return MinElemEx(DEFAULT_LESS_THAN, excluded, from);
         }
 
-
         template<typename LESS, __lEsS_cHeCkEr>
         auto MinElem(LESS &&less, SizeType from = 0) -> ObjectType * {
             return const_cast<ObjectType *>(const_cast<ReadOnlyArrayLike const *>(this)->MinElem(
