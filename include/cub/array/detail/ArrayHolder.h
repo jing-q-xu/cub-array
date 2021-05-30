@@ -9,6 +9,7 @@
 #include <cub/array/detail/ObjectTrait.h>
 #include <cstdint>
 #include <cstring>
+#include <algorithm>
 
 namespace detail {
     template<typename T, std::size_t MAX_NUM, typename OBJ = T>
@@ -21,15 +22,15 @@ namespace detail {
         static_assert(alignof(T) == alignof(OBJ));
 
     protected:
-        auto ClearContent() -> void {
+        auto ClearContent(SizeType from = 0) -> void {
             if constexpr (!std::is_trivially_destructible_v<T>) {
-                for(int i=0; i<num; i++) Trait::Destroy(objs[i]);
+                for(int i=from; i<num; i++) Trait::Destroy(objs[i]);
             }
         }
 
-        auto Clear() -> void {
+        auto Clear(SizeType from = 0) -> void {
             ClearContent();
-            num = 0;
+            num = std::min(from, num);
         }
 
     public:

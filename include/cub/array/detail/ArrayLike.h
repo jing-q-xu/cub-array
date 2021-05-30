@@ -60,15 +60,7 @@ namespace detail {
             Erase(p - base);
         }
 
-        auto Clear(SizeType from = 0) -> void {
-            if constexpr(!std::is_trivially_destructible_v<ObjectType>) {
-                for (auto i = from; i < Data::num; i++) {
-                    Trait::Destroy(Data::objs[i]);
-                }
-            }
-
-            Data::num = std::min(from, Data::num);
-        }
+        using Parent::Clear;
 
         template<typename LESS, __lEsS_cHeCkEr>
         auto Sort(LESS&& less) -> void {
