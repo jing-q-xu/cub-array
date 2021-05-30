@@ -179,10 +179,8 @@ namespace detail {
             if constexpr(scope.size() <= sizeof(std::size_t) * 8) {
                 auto bits = GetBits<EXCLUDE_SCOPE>(scope, from);
                 int i = from;
-                for(; bits.any(); bits >>= 1, ++i) {
-                    if (!bits[0]) continue;
-                    break;
-                }
+
+                for(;bits.any() && !bits[0]; bits >>= 1, ++i);
 
                 if(bits.none()) return std::nullopt;
 
