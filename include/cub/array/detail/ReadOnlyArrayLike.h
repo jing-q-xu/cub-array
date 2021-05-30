@@ -409,8 +409,6 @@ namespace detail {
             return MaxElem(DEFAULT_LESS_THAN, from);
         }
 
-
-
         template<typename LESS, __lEsS_cHeCkEr>
         auto MaxElemIndex(LESS &&less, BitMap excluded, SizeType from = 0) const -> std::optional<SizeType> {
             return MinElemIndex([&](auto &&l, auto r) { return less(r, l); }, excluded, from);
