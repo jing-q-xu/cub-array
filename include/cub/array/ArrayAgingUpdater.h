@@ -31,22 +31,22 @@ private:
                 return policy.Matches(fromElem, toElem);
             });
             if(index) {
-                policy.OnFound(to[*index], fromElem);
+                policy.Update(to[*index], fromElem);
                 updateFlag.set(i);
             } else {
-                policy.OnNotFound(to[*index]);
+                policy.Update(to[*index]);
             }
         });
     }
 
     auto TryAppend(FromArray const& from) -> void {
-        UpdateFlag allUpdated = UpdateFlag{}.flip();
+        auto numOfUpdated = updateFlag.count();
 
-        if(allUpdated == updateFlag) {
+        if(numOfUpdated == from.GetNum()) {
             return;
         }
 
-        if(FromArray::MAX_SIZE - updateFlag.count() < to.GetFreeNum()) {
+        if(from.GetNum() - numOfUpdated <= to.GetFreeNum()) {
             FastAppend(from);
         } else {
             SlowAppend(from);
@@ -81,7 +81,9 @@ private:
             if(removable.none()) break;
             auto elemIndex = to.MinElemIndex(removable);
             if(!elemIndex) break;
+
             if(policy.Less(sorted[i], to[*elemIndex])) break;
+
             removable.reset(*elemIndex);
             removed.set(*elemIndex);
             policy.Replace(to, *elemIndex, sorted[i]);

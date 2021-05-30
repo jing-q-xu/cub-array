@@ -51,11 +51,11 @@ namespace {
             return temp.value < local.value;
         }
 
-        auto OnFound(Local& local, Phy const& phy) -> void {
+        auto Update(Local& local, Phy const& phy) -> void {
             local.value += phy.value;
         }
 
-        auto OnNotFound(Local& local) -> void {
+        auto Update(Local& local) -> void {
             local.value += 1;
         }
 
