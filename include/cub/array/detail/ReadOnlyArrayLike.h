@@ -170,19 +170,18 @@ namespace detail {
                 }
                 auto n = scope.size() - Data::num;
                 int i = from;
-                std::optional<SizeType> start;
                 auto bits = (scope << n) >> (n + from);
                 for(; bits.any(); bits >>= 1, ++i) {
                     if (!bits[0]) continue;
-                    start = i;
                     break;
                 }
 
-                if(!start) return std::nullopt;
-                auto minElem = *start;
-                for(bits >>= 1, ++i; bits.any(); bits >>= 1, ++i) {
-                    if (!bits[0]) continue;
-                    if(less((*this)[i], (*this)[minElem])) minElem = i;
+                if(bits.none()) return std::nullopt;
+
+                auto minElem = i;
+                while(bits.any()) {
+                    bits >>= 1, ++i;
+                    if(bits[0] && less((*this)[i], (*this)[minElem])) minElem = i;
                 }
                 return minElem;
             } else {
@@ -202,8 +201,6 @@ namespace detail {
                 }
                 return minElem;
             }
-
-            return std::nullopt;
         }
 
     public:
